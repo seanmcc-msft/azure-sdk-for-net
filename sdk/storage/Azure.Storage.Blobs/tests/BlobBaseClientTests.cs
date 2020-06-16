@@ -703,6 +703,35 @@ namespace Azure.Storage.Blobs.Test
         }
 
         [Test]
+        public async Task DownloadToAsync_EmptyBlob()
+        {
+            await using DisposingContainer test = await GetTestContainerAsync();
+            var data = GetRandomBuffer(Constants.MB * 257);
+
+            BlockBlobClient blob = InstrumentClient(test.Container.GetBlockBlobClient(GetNewBlobName()));
+            using (var stream = new MemoryStream(data))
+            {
+                await blob.UploadAsync(stream,
+                    new UploadBlobOptions
+                    {
+                        TransferOptions = new StorageTransferOptions
+                        {
+                            MaximumTransferSize = Constants.MB,
+                            MaximumConcurrency = 4,
+                            InitialTransferSize = Constants.MB
+                        }
+                    }
+                );
+            }
+            using (var resultStream = new MemoryStream(data))
+            {
+                await blob.DownloadToAsync(resultStream);
+                Assert.AreEqual(data.Length, resultStream.Length);
+                TestHelper.AssertSequenceEqual(data, resultStream.ToArray());
+            }
+        }
+
+        [Test]
         public async Task DownloadTo_Initial304()
         {
             await using DisposingContainer test = await GetTestContainerAsync();
