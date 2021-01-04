@@ -1740,15 +1740,6 @@ namespace Azure.Storage.Files.DataLake
                     $"{nameof(sourceConditions)}: {sourceConditions}");
                 try
                 {
-                    // Build renameSource
-                    DataLakeUriBuilder sourceUriBuilder = new DataLakeUriBuilder(_dfsUri);
-                    string renameSource = "/" + sourceUriBuilder.FileSystemName + "/" + sourceUriBuilder.DirectoryOrFilePath.EscapePath();
-
-                    if (sourceUriBuilder.Sas != null)
-                    {
-                        renameSource += "?" + sourceUriBuilder.Sas;
-                    }
-
                     // Build destination URI
                     DataLakeUriBuilder destUriBuilder = new DataLakeUriBuilder(_dfsUri)
                     {
@@ -1770,26 +1761,23 @@ namespace Azure.Storage.Files.DataLake
                         destUriBuilder.DirectoryOrFilePath = destinationPath;
                     }
 
+                    string destPathString = "/" + destUriBuilder.FileSystemName + "/" + destUriBuilder.DirectoryOrFilePath.EscapePath();
+
                     // Build destPathClient
                     DataLakePathClient destPathClient = new DataLakePathClient(destUriBuilder.ToUri(), Pipeline, SharedKeyCredential);
 
-                    Response<PathCreateResult> response = await DataLakeRestClient.Path.CreateAsync(
-                        clientDiagnostics: _clientDiagnostics,
+                    Response<PathRenameInternal> response = await DataLakeRestClient.Path.RenameAsync(
+                        clientDiagnostics: ClientDiagnostics,
                         pipeline: Pipeline,
-                        resourceUri: destPathClient.DfsUri,
+                        resourceUri: _blobUri,
                         version: Version.ToVersionString(),
-                        mode: PathRenameMode.Legacy,
-                        renameSource: renameSource,
-                        leaseId: destinationConditions?.LeaseId,
-                        sourceLeaseId: sourceConditions?.LeaseId,
-                        ifMatch: destinationConditions?.IfMatch,
-                        ifNoneMatch: destinationConditions?.IfNoneMatch,
-                        ifModifiedSince: destinationConditions?.IfModifiedSince,
-                        ifUnmodifiedSince: destinationConditions?.IfUnmodifiedSince,
-                        sourceIfMatch: sourceConditions?.IfMatch,
-                        sourceIfNoneMatch: sourceConditions?.IfNoneMatch,
-                        sourceIfModifiedSince: sourceConditions?.IfModifiedSince,
-                        sourceIfUnmodifiedSince: sourceConditions?.IfUnmodifiedSince,
+                        renameDestination: destPathString,
+                        leaseId: sourceConditions?.LeaseId,
+                        destinationIfMatch: destinationConditions?.IfMatch,
+                        destinationIfModifiedSince: destinationConditions?.IfModifiedSince,
+                        destinationIfNoneMatch: destinationConditions?.IfNoneMatch,
+                        destinationIfUnmodifiedSince: destinationConditions?.IfUnmodifiedSince,
+                        destinationLeaseId: destinationConditions?.LeaseId,
                         async: async,
                         cancellationToken: cancellationToken)
                         .ConfigureAwait(false);

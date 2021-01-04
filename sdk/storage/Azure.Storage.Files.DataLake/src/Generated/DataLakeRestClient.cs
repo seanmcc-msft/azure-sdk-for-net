@@ -2819,6 +2819,220 @@ namespace Azure.Storage.Files.DataLake
             }
             #endregion Path.DeleteAsync
 
+            #region Path.RenameAsync
+            /// <summary>
+            /// Renames the path
+            /// </summary>
+            /// <param name="clientDiagnostics">The ClientDiagnostics instance used for operation reporting.</param>
+            /// <param name="pipeline">The pipeline used for sending requests.</param>
+            /// <param name="resourceUri">The URL of the service account, container, or blob that is the targe of the desired operation.</param>
+            /// <param name="version">Specifies the version of the operation to use for this request.</param>
+            /// <param name="renameDestination">The destination path</param>
+            /// <param name="timeout">The timeout parameter is expressed in seconds. For more information, see <a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations">Setting Timeouts for Blob Service Operations.</a></param>
+            /// <param name="requestId">Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.</param>
+            /// <param name="leaseId">If specified, the operation only succeeds if the resource's lease is active and matches this ID.</param>
+            /// <param name="destinationIfMatch">Specify an ETag value to operate only on blobs with a matching value.</param>
+            /// <param name="destinationIfModifiedSince">Specify this header value to operate only on a blob if it has been modified since the specified date/time.</param>
+            /// <param name="destinationIfNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
+            /// <param name="destinationIfUnmodifiedSince">Specify this header value to operate only on a blob if it has not been modified since the specified date/time.</param>
+            /// <param name="destinationLeaseId">A lease ID for the source path. If specified, the source path must have an active lease and the lease ID must match.</param>
+            /// <param name="overwriteDestination">If the destination should be overwritten</param>
+            /// <param name="async">Whether to invoke the operation asynchronously.  The default value is true.</param>
+            /// <param name="operationName">Operation name.</param>
+            /// <param name="cancellationToken">Cancellation token.</param>
+            /// <returns>Azure.Response{Azure.Storage.Files.DataLake.Models.PathRenameInternal}</returns>
+            public static async System.Threading.Tasks.ValueTask<Azure.Response<Azure.Storage.Files.DataLake.Models.PathRenameInternal>> RenameAsync(
+                Azure.Core.Pipeline.ClientDiagnostics clientDiagnostics,
+                Azure.Core.Pipeline.HttpPipeline pipeline,
+                System.Uri resourceUri,
+                string version,
+                string renameDestination,
+                int? timeout = default,
+                string requestId = default,
+                string leaseId = default,
+                Azure.ETag? destinationIfMatch = default,
+                System.DateTimeOffset? destinationIfModifiedSince = default,
+                Azure.ETag? destinationIfNoneMatch = default,
+                System.DateTimeOffset? destinationIfUnmodifiedSince = default,
+                string destinationLeaseId = default,
+                string overwriteDestination = default,
+                bool async = true,
+                string operationName = "PathClient.Rename",
+                System.Threading.CancellationToken cancellationToken = default)
+            {
+                Azure.Core.Pipeline.DiagnosticScope _scope = clientDiagnostics.CreateScope(operationName);
+                try
+                {
+                    _scope.AddAttribute("url", resourceUri);
+                    _scope.Start();
+                    using (Azure.Core.HttpMessage _message = RenameAsync_CreateMessage(
+                        pipeline,
+                        resourceUri,
+                        version,
+                        renameDestination,
+                        timeout,
+                        requestId,
+                        leaseId,
+                        destinationIfMatch,
+                        destinationIfModifiedSince,
+                        destinationIfNoneMatch,
+                        destinationIfUnmodifiedSince,
+                        destinationLeaseId,
+                        overwriteDestination))
+                    {
+                        if (async)
+                        {
+                            // Send the request asynchronously if we're being called via an async path
+                            await pipeline.SendAsync(_message, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            // Send the request synchronously through the API that blocks if we're being called via a sync path
+                            // (this is safe because the Task will complete before the user can call Wait)
+                            pipeline.Send(_message, cancellationToken);
+                        }
+                        Azure.Response _response = _message.Response;
+                        cancellationToken.ThrowIfCancellationRequested();
+                        return RenameAsync_CreateResponse(clientDiagnostics, _response);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    _scope.Failed(ex);
+                    throw;
+                }
+                finally
+                {
+                    _scope.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Create the Path.RenameAsync request.
+            /// </summary>
+            /// <param name="pipeline">The pipeline used for sending requests.</param>
+            /// <param name="resourceUri">The URL of the service account, container, or blob that is the targe of the desired operation.</param>
+            /// <param name="version">Specifies the version of the operation to use for this request.</param>
+            /// <param name="renameDestination">The destination path</param>
+            /// <param name="timeout">The timeout parameter is expressed in seconds. For more information, see <a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations">Setting Timeouts for Blob Service Operations.</a></param>
+            /// <param name="requestId">Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.</param>
+            /// <param name="leaseId">If specified, the operation only succeeds if the resource's lease is active and matches this ID.</param>
+            /// <param name="destinationIfMatch">Specify an ETag value to operate only on blobs with a matching value.</param>
+            /// <param name="destinationIfModifiedSince">Specify this header value to operate only on a blob if it has been modified since the specified date/time.</param>
+            /// <param name="destinationIfNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
+            /// <param name="destinationIfUnmodifiedSince">Specify this header value to operate only on a blob if it has not been modified since the specified date/time.</param>
+            /// <param name="destinationLeaseId">A lease ID for the source path. If specified, the source path must have an active lease and the lease ID must match.</param>
+            /// <param name="overwriteDestination">If the destination should be overwritten</param>
+            /// <returns>The Path.RenameAsync Message.</returns>
+            internal static Azure.Core.HttpMessage RenameAsync_CreateMessage(
+                Azure.Core.Pipeline.HttpPipeline pipeline,
+                System.Uri resourceUri,
+                string version,
+                string renameDestination,
+                int? timeout = default,
+                string requestId = default,
+                string leaseId = default,
+                Azure.ETag? destinationIfMatch = default,
+                System.DateTimeOffset? destinationIfModifiedSince = default,
+                Azure.ETag? destinationIfNoneMatch = default,
+                System.DateTimeOffset? destinationIfUnmodifiedSince = default,
+                string destinationLeaseId = default,
+                string overwriteDestination = default)
+            {
+                // Validation
+                if (resourceUri == null)
+                {
+                    throw new System.ArgumentNullException(nameof(resourceUri));
+                }
+                if (version == null)
+                {
+                    throw new System.ArgumentNullException(nameof(version));
+                }
+                if (renameDestination == null)
+                {
+                    throw new System.ArgumentNullException(nameof(renameDestination));
+                }
+
+                // Create the request
+                Azure.Core.HttpMessage _message = pipeline.CreateMessage();
+                Azure.Core.Request _request = _message.Request;
+
+                // Set the endpoint
+                _request.Method = Azure.Core.RequestMethod.Post;
+                _request.Uri.Reset(resourceUri);
+                _request.Uri.AppendQuery("comp", "rename", escapeValue: false);
+                if (timeout != null) { _request.Uri.AppendQuery("timeout", timeout.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)); }
+
+                // Add request headers
+                _request.Headers.SetValue("x-ms-version", version);
+                _request.Headers.SetValue("x-ms-rename-destination", renameDestination);
+                if (requestId != null) { _request.Headers.SetValue("x-ms-client-request-id", requestId); }
+                if (leaseId != null) { _request.Headers.SetValue("x-ms-lease-id", leaseId); }
+                if (destinationIfMatch != null) { _request.Headers.SetValue("x-ms-destination-if-match ", destinationIfMatch.Value.ToString()); }
+                if (destinationIfModifiedSince != null) { _request.Headers.SetValue("x-ms-destination-if-modified-since", destinationIfModifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
+                if (destinationIfNoneMatch != null) { _request.Headers.SetValue("x-ms-destination-if-none-match", destinationIfNoneMatch.Value.ToString()); }
+                if (destinationIfUnmodifiedSince != null) { _request.Headers.SetValue("x-ms-destination-if-unmodified-since", destinationIfUnmodifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
+                if (destinationLeaseId != null) { _request.Headers.SetValue("x-ms-destination-lease-id", destinationLeaseId); }
+                if (overwriteDestination != null) { _request.Headers.SetValue("x-ms-overwrite-destination", overwriteDestination); }
+
+                return _message;
+            }
+
+            /// <summary>
+            /// Create the Path.RenameAsync response or throw a failure exception.
+            /// </summary>
+            /// <param name="clientDiagnostics">The ClientDiagnostics instance to use.</param>
+            /// <param name="response">The raw Response.</param>
+            /// <returns>The Path.RenameAsync Azure.Response{Azure.Storage.Files.DataLake.Models.PathRenameInternal}.</returns>
+            internal static Azure.Response<Azure.Storage.Files.DataLake.Models.PathRenameInternal> RenameAsync_CreateResponse(
+                Azure.Core.Pipeline.ClientDiagnostics clientDiagnostics,
+                Azure.Response response)
+            {
+                // Process the response
+                switch (response.Status)
+                {
+                    case 201:
+                    {
+                        // Create the result
+                        Azure.Storage.Files.DataLake.Models.PathRenameInternal _value = new Azure.Storage.Files.DataLake.Models.PathRenameInternal();
+
+                        // Get response headers
+                        string _header;
+                        if (response.Headers.TryGetValue("ETag", out _header))
+                        {
+                            _value.ETag = new Azure.ETag(_header);
+                        }
+                        if (response.Headers.TryGetValue("Last-Modified", out _header))
+                        {
+                            _value.LastModified = System.DateTimeOffset.Parse(_header, System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        if (response.Headers.TryGetValue("x-ms-client-request-id", out _header))
+                        {
+                            _value.ClientRequestId = _header;
+                        }
+                        if (response.Headers.TryGetValue("x-ms-rename-destination", out _header))
+                        {
+                            _value.XMSRenameDestination = _header;
+                        }
+
+                        // Create the response
+                        return Response.FromValue(_value, response);
+                    }
+                    default:
+                    {
+                        // Create the result
+                        string _value;
+                        using (System.IO.StreamReader _streamReader = new System.IO.StreamReader(response.ContentStream))
+                        {
+                            _value = _streamReader.ReadToEnd();
+                        }
+
+                        throw _value.CreateException(clientDiagnostics, response);
+                    }
+                }
+            }
+            #endregion Path.RenameAsync
+
             #region Path.SetAccessControlAsync
             /// <summary>
             /// Set the owner, group, permissions, or access control list for a path.
@@ -5028,6 +5242,43 @@ namespace Azure.Storage.Files.DataLake.Models
     }
 }
 #endregion class PathList
+
+#region class PathRenameInternal
+namespace Azure.Storage.Files.DataLake.Models
+{
+    /// <summary>
+    /// PathRenameInternal
+    /// </summary>
+    internal partial class PathRenameInternal
+    {
+        /// <summary>
+        /// The ETag contains a value that you can use to perform operations conditionally. If the request version is 2011-08-18 or newer, the ETag value will be in quotes.
+        /// </summary>
+        public Azure.ETag ETag { get; internal set; }
+
+        /// <summary>
+        /// Returns the date and time the container was last modified. Any operation that modifies the blob, including an update of the blob's metadata or properties, changes the last-modified time of the blob.
+        /// </summary>
+        public System.DateTimeOffset LastModified { get; internal set; }
+
+        /// <summary>
+        /// If a client request id header is sent in the request, this header will be present in the response with the same value.
+        /// </summary>
+        public string ClientRequestId { get; internal set; }
+
+        /// <summary>
+        /// On successful rename, this header specifies the path the source was renamed to. Will never be different from x-ms-rename-destination header passed in the request.
+        /// </summary>
+        public string XMSRenameDestination { get; internal set; }
+
+        /// <summary>
+        /// Prevent direct instantiation of PathRenameInternal instances.
+        /// You can use DataLakeModelFactory.PathRenameInternal instead.
+        /// </summary>
+        internal PathRenameInternal() { }
+    }
+}
+#endregion class PathRenameInternal
 
 #region enum PathRenameMode
 namespace Azure.Storage.Files.DataLake.Models

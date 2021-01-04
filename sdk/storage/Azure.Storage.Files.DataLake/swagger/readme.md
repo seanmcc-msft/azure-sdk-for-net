@@ -4,7 +4,7 @@
 ## Configuration
 ``` yaml
 # Generate file storage
-input-file: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/storage-dataplane-preview/specification/storage/data-plane/Microsoft.StorageDataLake/stable/2020-02-10/DataLakeStorage.json
+input-file: C:\Users\seanmcc\git\azure-rest-api-specs\specification\storage\data-plane\Microsoft.StorageDataLake\stable\2020-06-12\DataLakeStorage.json
 output-folder: ../src/Generated
 clear-output-folder: false
 
@@ -282,6 +282,16 @@ directive:
   where: $.parameters
   transform: >
     $.PathExpiryOptions["x-az-public"] = false;
+```
+
+### Make PathRenameResult internal
+``` yaml
+directive:
+- from: swagger-document
+  where: $["x-ms-paths"]["/{filesystem}/{path}?comp=rename"]
+  transform: >
+    $.post.responses["201"]["x-az-public"] = false;
+    $.post.responses["201"]["x-az-response-name"] = "PathRenameInternal";
 ```
 
 ![Impressions](https://azure-sdk-impressions.azurewebsites.net/api/impressions/azure-sdk-for-net%2Fsdk%2Fstorage%2FAzure.Storage.Files.DataLake%2Fswagger%2Freadme.png)
