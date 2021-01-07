@@ -1761,7 +1761,7 @@ namespace Azure.Storage.Files.DataLake
                         destUriBuilder.DirectoryOrFilePath = destinationPath;
                     }
 
-                    string destPathString = "/" + destUriBuilder.FileSystemName + "/" + destUriBuilder.DirectoryOrFilePath.EscapePath();
+                    string destPathString = destUriBuilder.ToBlobUri().ToString();
 
                     // Build destPathClient
                     DataLakePathClient destPathClient = new DataLakePathClient(destUriBuilder.ToUri(), Pipeline, SharedKeyCredential);
@@ -1773,6 +1773,10 @@ namespace Azure.Storage.Files.DataLake
                         version: Version.ToVersionString(),
                         renameDestination: destPathString,
                         leaseId: sourceConditions?.LeaseId,
+                        ifMatch: sourceConditions?.IfMatch,
+                        ifModifiedSince: sourceConditions?.IfModifiedSince,
+                        ifNoneMatch: sourceConditions?.IfNoneMatch,
+                        ifUnmodifiedSince: sourceConditions?.IfUnmodifiedSince,
                         destinationIfMatch: destinationConditions?.IfMatch,
                         destinationIfModifiedSince: destinationConditions?.IfModifiedSince,
                         destinationIfNoneMatch: destinationConditions?.IfNoneMatch,

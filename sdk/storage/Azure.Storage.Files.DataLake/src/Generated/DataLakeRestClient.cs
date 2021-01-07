@@ -2831,6 +2831,10 @@ namespace Azure.Storage.Files.DataLake
             /// <param name="timeout">The timeout parameter is expressed in seconds. For more information, see <a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations">Setting Timeouts for Blob Service Operations.</a></param>
             /// <param name="requestId">Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.</param>
             /// <param name="leaseId">If specified, the operation only succeeds if the resource's lease is active and matches this ID.</param>
+            /// <param name="ifMatch">Specify an ETag value to operate only on blobs with a matching value.</param>
+            /// <param name="ifModifiedSince">Specify this header value to operate only on a blob if it has been modified since the specified date/time.</param>
+            /// <param name="ifNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
+            /// <param name="ifUnmodifiedSince">Specify this header value to operate only on a blob if it has not been modified since the specified date/time.</param>
             /// <param name="destinationIfMatch">Specify an ETag value to operate only on blobs with a matching value.</param>
             /// <param name="destinationIfModifiedSince">Specify this header value to operate only on a blob if it has been modified since the specified date/time.</param>
             /// <param name="destinationIfNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
@@ -2850,6 +2854,10 @@ namespace Azure.Storage.Files.DataLake
                 int? timeout = default,
                 string requestId = default,
                 string leaseId = default,
+                Azure.ETag? ifMatch = default,
+                System.DateTimeOffset? ifModifiedSince = default,
+                Azure.ETag? ifNoneMatch = default,
+                System.DateTimeOffset? ifUnmodifiedSince = default,
                 Azure.ETag? destinationIfMatch = default,
                 System.DateTimeOffset? destinationIfModifiedSince = default,
                 Azure.ETag? destinationIfNoneMatch = default,
@@ -2873,6 +2881,10 @@ namespace Azure.Storage.Files.DataLake
                         timeout,
                         requestId,
                         leaseId,
+                        ifMatch,
+                        ifModifiedSince,
+                        ifNoneMatch,
+                        ifUnmodifiedSince,
                         destinationIfMatch,
                         destinationIfModifiedSince,
                         destinationIfNoneMatch,
@@ -2917,6 +2929,10 @@ namespace Azure.Storage.Files.DataLake
             /// <param name="timeout">The timeout parameter is expressed in seconds. For more information, see <a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations">Setting Timeouts for Blob Service Operations.</a></param>
             /// <param name="requestId">Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.</param>
             /// <param name="leaseId">If specified, the operation only succeeds if the resource's lease is active and matches this ID.</param>
+            /// <param name="ifMatch">Specify an ETag value to operate only on blobs with a matching value.</param>
+            /// <param name="ifModifiedSince">Specify this header value to operate only on a blob if it has been modified since the specified date/time.</param>
+            /// <param name="ifNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
+            /// <param name="ifUnmodifiedSince">Specify this header value to operate only on a blob if it has not been modified since the specified date/time.</param>
             /// <param name="destinationIfMatch">Specify an ETag value to operate only on blobs with a matching value.</param>
             /// <param name="destinationIfModifiedSince">Specify this header value to operate only on a blob if it has been modified since the specified date/time.</param>
             /// <param name="destinationIfNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
@@ -2932,6 +2948,10 @@ namespace Azure.Storage.Files.DataLake
                 int? timeout = default,
                 string requestId = default,
                 string leaseId = default,
+                Azure.ETag? ifMatch = default,
+                System.DateTimeOffset? ifModifiedSince = default,
+                Azure.ETag? ifNoneMatch = default,
+                System.DateTimeOffset? ifUnmodifiedSince = default,
                 Azure.ETag? destinationIfMatch = default,
                 System.DateTimeOffset? destinationIfModifiedSince = default,
                 Azure.ETag? destinationIfNoneMatch = default,
@@ -2968,7 +2988,11 @@ namespace Azure.Storage.Files.DataLake
                 _request.Headers.SetValue("x-ms-rename-destination", renameDestination);
                 if (requestId != null) { _request.Headers.SetValue("x-ms-client-request-id", requestId); }
                 if (leaseId != null) { _request.Headers.SetValue("x-ms-lease-id", leaseId); }
-                if (destinationIfMatch != null) { _request.Headers.SetValue("x-ms-destination-if-match ", destinationIfMatch.Value.ToString()); }
+                if (ifMatch != null) { _request.Headers.SetValue("If-Match", ifMatch.Value.ToString()); }
+                if (ifModifiedSince != null) { _request.Headers.SetValue("If-Modified-Since", ifModifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
+                if (ifNoneMatch != null) { _request.Headers.SetValue("If-None-Match", ifNoneMatch.Value.ToString()); }
+                if (ifUnmodifiedSince != null) { _request.Headers.SetValue("If-Unmodified-Since", ifUnmodifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
+                if (destinationIfMatch != null) { _request.Headers.SetValue("x-ms-destination-if-match", destinationIfMatch.Value.ToString()); }
                 if (destinationIfModifiedSince != null) { _request.Headers.SetValue("x-ms-destination-if-modified-since", destinationIfModifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
                 if (destinationIfNoneMatch != null) { _request.Headers.SetValue("x-ms-destination-if-none-match", destinationIfNoneMatch.Value.ToString()); }
                 if (destinationIfUnmodifiedSince != null) { _request.Headers.SetValue("x-ms-destination-if-unmodified-since", destinationIfUnmodifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
