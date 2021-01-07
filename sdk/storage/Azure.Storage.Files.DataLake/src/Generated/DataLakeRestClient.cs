@@ -2863,7 +2863,7 @@ namespace Azure.Storage.Files.DataLake
                 Azure.ETag? destinationIfNoneMatch = default,
                 System.DateTimeOffset? destinationIfUnmodifiedSince = default,
                 string destinationLeaseId = default,
-                string overwriteDestination = default,
+                bool? overwriteDestination = default,
                 bool async = true,
                 string operationName = "PathClient.Rename",
                 System.Threading.CancellationToken cancellationToken = default)
@@ -2957,7 +2957,7 @@ namespace Azure.Storage.Files.DataLake
                 Azure.ETag? destinationIfNoneMatch = default,
                 System.DateTimeOffset? destinationIfUnmodifiedSince = default,
                 string destinationLeaseId = default,
-                string overwriteDestination = default)
+                bool? overwriteDestination = default)
             {
                 // Validation
                 if (resourceUri == null)
@@ -2997,7 +2997,11 @@ namespace Azure.Storage.Files.DataLake
                 if (destinationIfNoneMatch != null) { _request.Headers.SetValue("x-ms-destination-if-none-match", destinationIfNoneMatch.Value.ToString()); }
                 if (destinationIfUnmodifiedSince != null) { _request.Headers.SetValue("x-ms-destination-if-unmodified-since", destinationIfUnmodifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
                 if (destinationLeaseId != null) { _request.Headers.SetValue("x-ms-destination-lease-id", destinationLeaseId); }
-                if (overwriteDestination != null) { _request.Headers.SetValue("x-ms-overwrite-destination", overwriteDestination); }
+                if (overwriteDestination != null) {
+                #pragma warning disable CA1308 // Normalize strings to uppercase
+                _request.Headers.SetValue("x-ms-overwrite-destination", overwriteDestination.Value.ToString(System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant());
+                #pragma warning restore CA1308 // Normalize strings to uppercase
+                }
 
                 return _message;
             }
