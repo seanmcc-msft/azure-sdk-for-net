@@ -2840,7 +2840,6 @@ namespace Azure.Storage.Files.DataLake
             /// <param name="destinationIfNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
             /// <param name="destinationIfUnmodifiedSince">Specify this header value to operate only on a blob if it has not been modified since the specified date/time.</param>
             /// <param name="destinationLeaseId">A lease ID for the source path. If specified, the source path must have an active lease and the lease ID must match.</param>
-            /// <param name="overwriteDestination">If the destination should be overwritten</param>
             /// <param name="async">Whether to invoke the operation asynchronously.  The default value is true.</param>
             /// <param name="operationName">Operation name.</param>
             /// <param name="cancellationToken">Cancellation token.</param>
@@ -2863,7 +2862,6 @@ namespace Azure.Storage.Files.DataLake
                 Azure.ETag? destinationIfNoneMatch = default,
                 System.DateTimeOffset? destinationIfUnmodifiedSince = default,
                 string destinationLeaseId = default,
-                bool? overwriteDestination = default,
                 bool async = true,
                 string operationName = "PathClient.Rename",
                 System.Threading.CancellationToken cancellationToken = default)
@@ -2889,8 +2887,7 @@ namespace Azure.Storage.Files.DataLake
                         destinationIfModifiedSince,
                         destinationIfNoneMatch,
                         destinationIfUnmodifiedSince,
-                        destinationLeaseId,
-                        overwriteDestination))
+                        destinationLeaseId))
                     {
                         if (async)
                         {
@@ -2938,7 +2935,6 @@ namespace Azure.Storage.Files.DataLake
             /// <param name="destinationIfNoneMatch">Specify an ETag value to operate only on blobs without a matching value.</param>
             /// <param name="destinationIfUnmodifiedSince">Specify this header value to operate only on a blob if it has not been modified since the specified date/time.</param>
             /// <param name="destinationLeaseId">A lease ID for the source path. If specified, the source path must have an active lease and the lease ID must match.</param>
-            /// <param name="overwriteDestination">If the destination should be overwritten</param>
             /// <returns>The Path.RenameAsync Message.</returns>
             internal static Azure.Core.HttpMessage RenameAsync_CreateMessage(
                 Azure.Core.Pipeline.HttpPipeline pipeline,
@@ -2956,8 +2952,7 @@ namespace Azure.Storage.Files.DataLake
                 System.DateTimeOffset? destinationIfModifiedSince = default,
                 Azure.ETag? destinationIfNoneMatch = default,
                 System.DateTimeOffset? destinationIfUnmodifiedSince = default,
-                string destinationLeaseId = default,
-                bool? overwriteDestination = default)
+                string destinationLeaseId = default)
             {
                 // Validation
                 if (resourceUri == null)
@@ -2997,11 +2992,6 @@ namespace Azure.Storage.Files.DataLake
                 if (destinationIfNoneMatch != null) { _request.Headers.SetValue("x-ms-destination-if-none-match", destinationIfNoneMatch.Value.ToString()); }
                 if (destinationIfUnmodifiedSince != null) { _request.Headers.SetValue("x-ms-destination-if-unmodified-since", destinationIfUnmodifiedSince.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)); }
                 if (destinationLeaseId != null) { _request.Headers.SetValue("x-ms-destination-lease-id", destinationLeaseId); }
-                if (overwriteDestination != null) {
-                #pragma warning disable CA1308 // Normalize strings to uppercase
-                _request.Headers.SetValue("x-ms-overwrite-destination", overwriteDestination.Value.ToString(System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant());
-                #pragma warning restore CA1308 // Normalize strings to uppercase
-                }
 
                 return _message;
             }

@@ -1744,7 +1744,7 @@ namespace Azure.Storage.Files.DataLake
                     DataLakeUriBuilder destUriBuilder = new DataLakeUriBuilder(_dfsUri)
                     {
                         Sas = null,
-                        Query = null
+                        DirectoryOrFilePath = null
                     };
                     destUriBuilder.FileSystemName = destinationFileSystem ?? destUriBuilder.FileSystemName;
 
@@ -1782,7 +1782,6 @@ namespace Azure.Storage.Files.DataLake
                         destinationIfNoneMatch: destinationConditions?.IfNoneMatch,
                         destinationIfUnmodifiedSince: destinationConditions?.IfUnmodifiedSince,
                         destinationLeaseId: destinationConditions?.LeaseId,
-                        overwriteDestination: true,
                         async: async,
                         cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
