@@ -49,7 +49,7 @@ namespace Azure.Storage.Files.Shares
             _pipeline = pipeline;
         }
 
-        internal HttpMessage CreateCreateRequest(string shareName, string directory, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, IDictionary<string, string> metadata, string filePermission, string filePermissionKey)
+        internal HttpMessage CreateCreateRequest(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, IDictionary<string, string> metadata, string filePermission, string filePermissionKey)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -57,9 +57,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("restype", "directory", true);
             if (timeout != null)
             {
@@ -87,8 +84,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a new directory under the specified share or parent directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
         /// <param name="fileLastWriteTime"> Last write time for the file/directory. Default value: Now. </param>
@@ -97,17 +92,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="filePermission"> If specified the permission (security descriptor) shall be set for the directory/file. This header can be used if Permission size is &lt;= 8KB, else x-ms-file-permission-key header shall be used. Default value: Inherit. If SDDL is specified as input, it must have owner, group and dacl. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="filePermissionKey"> Key of the permission to be set for the directory/file. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="directory"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public async Task<ResponseWithHeaders<DirectoryCreateHeaders>> CreateAsync(string shareName, string directory, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public async Task<ResponseWithHeaders<DirectoryCreateHeaders>> CreateAsync(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -121,7 +108,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateCreateRequest(shareName, directory, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey);
+            using var message = CreateCreateRequest(fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectoryCreateHeaders(message.Response);
             switch (message.Response.Status)
@@ -134,8 +121,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a new directory under the specified share or parent directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
         /// <param name="fileLastWriteTime"> Last write time for the file/directory. Default value: Now. </param>
@@ -144,17 +129,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="filePermission"> If specified the permission (security descriptor) shall be set for the directory/file. This header can be used if Permission size is &lt;= 8KB, else x-ms-file-permission-key header shall be used. Default value: Inherit. If SDDL is specified as input, it must have owner, group and dacl. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="filePermissionKey"> Key of the permission to be set for the directory/file. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="directory"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public ResponseWithHeaders<DirectoryCreateHeaders> Create(string shareName, string directory, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public ResponseWithHeaders<DirectoryCreateHeaders> Create(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -168,7 +145,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateCreateRequest(shareName, directory, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey);
+            using var message = CreateCreateRequest(fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectoryCreateHeaders(message.Response);
             switch (message.Response.Status)
@@ -180,7 +157,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateGetPropertiesRequest(string shareName, string directory, int? timeout)
+        internal HttpMessage CreateGetPropertiesRequest(int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -188,9 +165,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("restype", "directory", true);
             if (sharesnapshot != null)
             {
@@ -207,23 +181,11 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns all system properties for the specified directory, and can also be used to check the existence of a directory. The data returned does not include the files in the directory or any subdirectories. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public async Task<ResponseWithHeaders<DirectoryGetPropertiesHeaders>> GetPropertiesAsync(string shareName, string directory, int? timeout = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<DirectoryGetPropertiesHeaders>> GetPropertiesAsync(int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateGetPropertiesRequest(shareName, directory, timeout);
+            using var message = CreateGetPropertiesRequest(timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectoryGetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -236,23 +198,11 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns all system properties for the specified directory, and can also be used to check the existence of a directory. The data returned does not include the files in the directory or any subdirectories. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public ResponseWithHeaders<DirectoryGetPropertiesHeaders> GetProperties(string shareName, string directory, int? timeout = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<DirectoryGetPropertiesHeaders> GetProperties(int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateGetPropertiesRequest(shareName, directory, timeout);
+            using var message = CreateGetPropertiesRequest(timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectoryGetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -264,7 +214,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateDeleteRequest(string shareName, string directory, int? timeout)
+        internal HttpMessage CreateDeleteRequest(int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -272,9 +222,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("restype", "directory", true);
             if (timeout != null)
             {
@@ -287,23 +234,11 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Removes the specified empty directory. Note that the directory must be empty before it can be deleted. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public async Task<ResponseWithHeaders<DirectoryDeleteHeaders>> DeleteAsync(string shareName, string directory, int? timeout = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<DirectoryDeleteHeaders>> DeleteAsync(int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateDeleteRequest(shareName, directory, timeout);
+            using var message = CreateDeleteRequest(timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectoryDeleteHeaders(message.Response);
             switch (message.Response.Status)
@@ -316,23 +251,11 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Removes the specified empty directory. Note that the directory must be empty before it can be deleted. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public ResponseWithHeaders<DirectoryDeleteHeaders> Delete(string shareName, string directory, int? timeout = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<DirectoryDeleteHeaders> Delete(int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateDeleteRequest(shareName, directory, timeout);
+            using var message = CreateDeleteRequest(timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectoryDeleteHeaders(message.Response);
             switch (message.Response.Status)
@@ -344,7 +267,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateSetPropertiesRequest(string shareName, string directory, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, string filePermission, string filePermissionKey)
+        internal HttpMessage CreateSetPropertiesRequest(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, string filePermission, string filePermissionKey)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -352,9 +275,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("restype", "directory", true);
             uri.AppendQuery("comp", "properties", true);
             if (timeout != null)
@@ -379,8 +299,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets properties on the directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
         /// <param name="fileLastWriteTime"> Last write time for the file/directory. Default value: Now. </param>
@@ -388,17 +306,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="filePermission"> If specified the permission (security descriptor) shall be set for the directory/file. This header can be used if Permission size is &lt;= 8KB, else x-ms-file-permission-key header shall be used. Default value: Inherit. If SDDL is specified as input, it must have owner, group and dacl. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="filePermissionKey"> Key of the permission to be set for the directory/file. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="directory"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public async Task<ResponseWithHeaders<DirectorySetPropertiesHeaders>> SetPropertiesAsync(string shareName, string directory, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public async Task<ResponseWithHeaders<DirectorySetPropertiesHeaders>> SetPropertiesAsync(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -412,7 +322,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateSetPropertiesRequest(shareName, directory, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, filePermission, filePermissionKey);
+            using var message = CreateSetPropertiesRequest(fileAttributes, fileCreationTime, fileLastWriteTime, timeout, filePermission, filePermissionKey);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectorySetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -425,8 +335,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets properties on the directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
         /// <param name="fileLastWriteTime"> Last write time for the file/directory. Default value: Now. </param>
@@ -434,17 +342,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="filePermission"> If specified the permission (security descriptor) shall be set for the directory/file. This header can be used if Permission size is &lt;= 8KB, else x-ms-file-permission-key header shall be used. Default value: Inherit. If SDDL is specified as input, it must have owner, group and dacl. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="filePermissionKey"> Key of the permission to be set for the directory/file. Note: Only one of the x-ms-file-permission or x-ms-file-permission-key should be specified. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="directory"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public ResponseWithHeaders<DirectorySetPropertiesHeaders> SetProperties(string shareName, string directory, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public ResponseWithHeaders<DirectorySetPropertiesHeaders> SetProperties(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, string filePermission = null, string filePermissionKey = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -458,7 +358,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateSetPropertiesRequest(shareName, directory, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, filePermission, filePermissionKey);
+            using var message = CreateSetPropertiesRequest(fileAttributes, fileCreationTime, fileLastWriteTime, timeout, filePermission, filePermissionKey);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectorySetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -470,7 +370,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateSetMetadataRequest(string shareName, string directory, int? timeout, IDictionary<string, string> metadata)
+        internal HttpMessage CreateSetMetadataRequest(int? timeout, IDictionary<string, string> metadata)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -478,9 +378,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("restype", "directory", true);
             uri.AppendQuery("comp", "metadata", true);
             if (timeout != null)
@@ -498,24 +395,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Updates user defined metadata for the specified directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public async Task<ResponseWithHeaders<DirectorySetMetadataHeaders>> SetMetadataAsync(string shareName, string directory, int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<DirectorySetMetadataHeaders>> SetMetadataAsync(int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateSetMetadataRequest(shareName, directory, timeout, metadata);
+            using var message = CreateSetMetadataRequest(timeout, metadata);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectorySetMetadataHeaders(message.Response);
             switch (message.Response.Status)
@@ -528,24 +413,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Updates user defined metadata for the specified directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public ResponseWithHeaders<DirectorySetMetadataHeaders> SetMetadata(string shareName, string directory, int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<DirectorySetMetadataHeaders> SetMetadata(int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateSetMetadataRequest(shareName, directory, timeout, metadata);
+            using var message = CreateSetMetadataRequest(timeout, metadata);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectorySetMetadataHeaders(message.Response);
             switch (message.Response.Status)
@@ -557,7 +430,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateListFilesAndDirectoriesSegmentRequest(string shareName, string directory, string prefix, string marker, int? maxresults, int? timeout)
+        internal HttpMessage CreateListFilesAndDirectoriesSegmentRequest(string prefix, string marker, int? maxresults, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -565,9 +438,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("restype", "directory", true);
             uri.AppendQuery("comp", "list", true);
             if (prefix != null)
@@ -597,26 +467,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns a list of files or directories under the specified share or directory. It lists the contents only for a single level of the directory hierarchy. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="prefix"> Filters the results to return only entries whose name begins with the specified prefix. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders>> ListFilesAndDirectoriesSegmentAsync(string shareName, string directory, string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders>> ListFilesAndDirectoriesSegmentAsync(string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateListFilesAndDirectoriesSegmentRequest(shareName, directory, prefix, marker, maxresults, timeout);
+            using var message = CreateListFilesAndDirectoriesSegmentRequest(prefix, marker, maxresults, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectoryListFilesAndDirectoriesSegmentHeaders(message.Response);
             switch (message.Response.Status)
@@ -637,26 +495,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns a list of files or directories under the specified share or directory. It lists the contents only for a single level of the directory hierarchy. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="prefix"> Filters the results to return only entries whose name begins with the specified prefix. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders> ListFilesAndDirectoriesSegment(string shareName, string directory, string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders> ListFilesAndDirectoriesSegment(string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateListFilesAndDirectoriesSegmentRequest(shareName, directory, prefix, marker, maxresults, timeout);
+            using var message = CreateListFilesAndDirectoriesSegmentRequest(prefix, marker, maxresults, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectoryListFilesAndDirectoriesSegmentHeaders(message.Response);
             switch (message.Response.Status)
@@ -676,7 +522,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateListHandlesRequest(string shareName, string directory, string marker, int? maxresults, int? timeout, bool? recursive)
+        internal HttpMessage CreateListHandlesRequest(string marker, int? maxresults, int? timeout, bool? recursive)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -684,9 +530,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("comp", "listhandles", true);
             if (marker != null)
             {
@@ -715,26 +558,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Lists handles for directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="recursive"> Specifies operation should apply to the directory specified in the URI, its files, its subdirectories and their files. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ListHandlesResponse, DirectoryListHandlesHeaders>> ListHandlesAsync(string shareName, string directory, string marker = null, int? maxresults = null, int? timeout = null, bool? recursive = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ListHandlesResponse, DirectoryListHandlesHeaders>> ListHandlesAsync(string marker = null, int? maxresults = null, int? timeout = null, bool? recursive = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateListHandlesRequest(shareName, directory, marker, maxresults, timeout, recursive);
+            using var message = CreateListHandlesRequest(marker, maxresults, timeout, recursive);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectoryListHandlesHeaders(message.Response);
             switch (message.Response.Status)
@@ -755,26 +586,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Lists handles for directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="recursive"> Specifies operation should apply to the directory specified in the URI, its files, its subdirectories and their files. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="directory"/> is null. </exception>
-        public ResponseWithHeaders<ListHandlesResponse, DirectoryListHandlesHeaders> ListHandles(string shareName, string directory, string marker = null, int? maxresults = null, int? timeout = null, bool? recursive = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ListHandlesResponse, DirectoryListHandlesHeaders> ListHandles(string marker = null, int? maxresults = null, int? timeout = null, bool? recursive = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
-
-            using var message = CreateListHandlesRequest(shareName, directory, marker, maxresults, timeout, recursive);
+            using var message = CreateListHandlesRequest(marker, maxresults, timeout, recursive);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectoryListHandlesHeaders(message.Response);
             switch (message.Response.Status)
@@ -794,7 +613,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateForceCloseHandlesRequest(string shareName, string directory, string handleId, int? timeout, string marker, bool? recursive)
+        internal HttpMessage CreateForceCloseHandlesRequest(string handleId, int? timeout, string marker, bool? recursive)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -802,9 +621,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(directory, true);
             uri.AppendQuery("comp", "forceclosehandles", true);
             if (timeout != null)
             {
@@ -830,30 +646,20 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Closes all handles open for given directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="handleId"> Specifies handle ID opened on the file or directory to be closed. Asterisk (‘*’) is a wildcard that specifies all handles. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="recursive"> Specifies operation should apply to the directory specified in the URI, its files, its subdirectories and their files. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="directory"/>, or <paramref name="handleId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<DirectoryForceCloseHandlesHeaders>> ForceCloseHandlesAsync(string shareName, string directory, string handleId, int? timeout = null, string marker = null, bool? recursive = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="handleId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<DirectoryForceCloseHandlesHeaders>> ForceCloseHandlesAsync(string handleId, int? timeout = null, string marker = null, bool? recursive = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
             if (handleId == null)
             {
                 throw new ArgumentNullException(nameof(handleId));
             }
 
-            using var message = CreateForceCloseHandlesRequest(shareName, directory, handleId, timeout, marker, recursive);
+            using var message = CreateForceCloseHandlesRequest(handleId, timeout, marker, recursive);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectoryForceCloseHandlesHeaders(message.Response);
             switch (message.Response.Status)
@@ -866,30 +672,20 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Closes all handles open for given directory. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="handleId"> Specifies handle ID opened on the file or directory to be closed. Asterisk (‘*’) is a wildcard that specifies all handles. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="recursive"> Specifies operation should apply to the directory specified in the URI, its files, its subdirectories and their files. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="directory"/>, or <paramref name="handleId"/> is null. </exception>
-        public ResponseWithHeaders<DirectoryForceCloseHandlesHeaders> ForceCloseHandles(string shareName, string directory, string handleId, int? timeout = null, string marker = null, bool? recursive = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="handleId"/> is null. </exception>
+        public ResponseWithHeaders<DirectoryForceCloseHandlesHeaders> ForceCloseHandles(string handleId, int? timeout = null, string marker = null, bool? recursive = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
             if (handleId == null)
             {
                 throw new ArgumentNullException(nameof(handleId));
             }
 
-            using var message = CreateForceCloseHandlesRequest(shareName, directory, handleId, timeout, marker, recursive);
+            using var message = CreateForceCloseHandlesRequest(handleId, timeout, marker, recursive);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectoryForceCloseHandlesHeaders(message.Response);
             switch (message.Response.Status)
@@ -901,7 +697,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateListFilesAndDirectoriesSegmentNextPageRequest(string nextLink, string shareName, string directory, string prefix, string marker, int? maxresults, int? timeout)
+        internal HttpMessage CreateListFilesAndDirectoriesSegmentNextPageRequest(string nextLink, string prefix, string marker, int? maxresults, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -917,30 +713,20 @@ namespace Azure.Storage.Files.Shares
 
         /// <summary> Returns a list of files or directories under the specified share or directory. It lists the contents only for a single level of the directory hierarchy. </summary>
         /// <param name="nextLink"> The URL to the next page of results. </param>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="prefix"> Filters the results to return only entries whose name begins with the specified prefix. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="nextLink"/>, <paramref name="shareName"/>, or <paramref name="directory"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders>> ListFilesAndDirectoriesSegmentNextPageAsync(string nextLink, string shareName, string directory, string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="nextLink"/> is null. </exception>
+        public async Task<ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders>> ListFilesAndDirectoriesSegmentNextPageAsync(string nextLink, string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
         {
             if (nextLink == null)
             {
                 throw new ArgumentNullException(nameof(nextLink));
             }
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
 
-            using var message = CreateListFilesAndDirectoriesSegmentNextPageRequest(nextLink, shareName, directory, prefix, marker, maxresults, timeout);
+            using var message = CreateListFilesAndDirectoriesSegmentNextPageRequest(nextLink, prefix, marker, maxresults, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new DirectoryListFilesAndDirectoriesSegmentHeaders(message.Response);
             switch (message.Response.Status)
@@ -962,30 +748,20 @@ namespace Azure.Storage.Files.Shares
 
         /// <summary> Returns a list of files or directories under the specified share or directory. It lists the contents only for a single level of the directory hierarchy. </summary>
         /// <param name="nextLink"> The URL to the next page of results. </param>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="directory"> The directory name. </param>
         /// <param name="prefix"> Filters the results to return only entries whose name begins with the specified prefix. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="nextLink"/>, <paramref name="shareName"/>, or <paramref name="directory"/> is null. </exception>
-        public ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders> ListFilesAndDirectoriesSegmentNextPage(string nextLink, string shareName, string directory, string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="nextLink"/> is null. </exception>
+        public ResponseWithHeaders<ListFilesAndDirectoriesSegmentResponse, DirectoryListFilesAndDirectoriesSegmentHeaders> ListFilesAndDirectoriesSegmentNextPage(string nextLink, string prefix = null, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
         {
             if (nextLink == null)
             {
                 throw new ArgumentNullException(nameof(nextLink));
             }
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (directory == null)
-            {
-                throw new ArgumentNullException(nameof(directory));
-            }
 
-            using var message = CreateListFilesAndDirectoriesSegmentNextPageRequest(nextLink, shareName, directory, prefix, marker, maxresults, timeout);
+            using var message = CreateListFilesAndDirectoriesSegmentNextPageRequest(nextLink, prefix, marker, maxresults, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new DirectoryListFilesAndDirectoriesSegmentHeaders(message.Response);
             switch (message.Response.Status)

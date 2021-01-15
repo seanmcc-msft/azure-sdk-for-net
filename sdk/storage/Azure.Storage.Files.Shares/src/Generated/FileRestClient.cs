@@ -57,7 +57,7 @@ namespace Azure.Storage.Files.Shares
             _pipeline = pipeline;
         }
 
-        internal HttpMessage CreateCreateRequest(string shareName, string fileName, long fileContentLength, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, IDictionary<string, string> metadata, string filePermission, string filePermissionKey, FileHttpHeaders fileHttpHeaders, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateCreateRequest(long fileContentLength, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, IDictionary<string, string> metadata, string filePermission, string filePermissionKey, FileHttpHeaders fileHttpHeaders, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -65,9 +65,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             if (timeout != null)
             {
                 uri.AppendQuery("timeout", timeout.Value, true);
@@ -124,8 +121,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a new file or replaces a file. Note it only initializes the file with no content. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="fileContentLength"> Specifies the maximum size for the file, up to 4 TB. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
@@ -137,17 +132,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="fileHttpHeaders"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileCreateHeaders>> CreateAsync(string shareName, string fileName, long fileContentLength, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileCreateHeaders>> CreateAsync(long fileContentLength, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -161,7 +148,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateCreateRequest(shareName, fileName, fileContentLength, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
+            using var message = CreateCreateRequest(fileContentLength, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileCreateHeaders(message.Response);
             switch (message.Response.Status)
@@ -174,8 +161,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a new file or replaces a file. Note it only initializes the file with no content. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="fileContentLength"> Specifies the maximum size for the file, up to 4 TB. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
@@ -187,17 +172,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="fileHttpHeaders"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public ResponseWithHeaders<FileCreateHeaders> Create(string shareName, string fileName, long fileContentLength, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public ResponseWithHeaders<FileCreateHeaders> Create(long fileContentLength, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -211,7 +188,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateCreateRequest(shareName, fileName, fileContentLength, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
+            using var message = CreateCreateRequest(fileContentLength, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, metadata, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileCreateHeaders(message.Response);
             switch (message.Response.Status)
@@ -223,7 +200,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateDownloadRequest(string shareName, string fileName, int? timeout, string range, bool? rangeGetContentMD5, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateDownloadRequest(int? timeout, string range, bool? rangeGetContentMD5, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -231,9 +208,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             if (timeout != null)
             {
                 uri.AppendQuery("timeout", timeout.Value, true);
@@ -257,26 +231,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Reads or downloads a file from the system, including its metadata and properties. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="range"> Return file data only from the specified byte range. </param>
         /// <param name="rangeGetContentMD5"> When this header is set to true and specified together with the Range header, the service returns the MD5 hash for the range, as long as the range is less than or equal to 4 MB in size. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<Stream, FileDownloadHeaders>> DownloadAsync(string shareName, string fileName, int? timeout = null, string range = null, bool? rangeGetContentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<Stream, FileDownloadHeaders>> DownloadAsync(int? timeout = null, string range = null, bool? rangeGetContentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateDownloadRequest(shareName, fileName, timeout, range, rangeGetContentMD5, leaseAccessConditions);
+            using var message = CreateDownloadRequest(timeout, range, rangeGetContentMD5, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileDownloadHeaders(message.Response);
             switch (message.Response.Status)
@@ -293,26 +255,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Reads or downloads a file from the system, including its metadata and properties. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="range"> Return file data only from the specified byte range. </param>
         /// <param name="rangeGetContentMD5"> When this header is set to true and specified together with the Range header, the service returns the MD5 hash for the range, as long as the range is less than or equal to 4 MB in size. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<Stream, FileDownloadHeaders> Download(string shareName, string fileName, int? timeout = null, string range = null, bool? rangeGetContentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<Stream, FileDownloadHeaders> Download(int? timeout = null, string range = null, bool? rangeGetContentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateDownloadRequest(shareName, fileName, timeout, range, rangeGetContentMD5, leaseAccessConditions);
+            using var message = CreateDownloadRequest(timeout, range, rangeGetContentMD5, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileDownloadHeaders(message.Response);
             switch (message.Response.Status)
@@ -328,7 +278,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateGetPropertiesRequest(string shareName, string fileName, int? timeout, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateGetPropertiesRequest(int? timeout, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -336,9 +286,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             if (sharesnapshot != null)
             {
                 uri.AppendQuery("sharesnapshot", sharesnapshot, true);
@@ -358,24 +305,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns all user-defined metadata, standard HTTP properties, and system properties for the file. It does not return the content of the file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileGetPropertiesHeaders>> GetPropertiesAsync(string shareName, string fileName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<FileGetPropertiesHeaders>> GetPropertiesAsync(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateGetPropertiesRequest(shareName, fileName, timeout, leaseAccessConditions);
+            using var message = CreateGetPropertiesRequest(timeout, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileGetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -388,24 +323,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns all user-defined metadata, standard HTTP properties, and system properties for the file. It does not return the content of the file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<FileGetPropertiesHeaders> GetProperties(string shareName, string fileName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<FileGetPropertiesHeaders> GetProperties(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateGetPropertiesRequest(shareName, fileName, timeout, leaseAccessConditions);
+            using var message = CreateGetPropertiesRequest(timeout, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileGetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -417,7 +340,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateDeleteRequest(string shareName, string fileName, int? timeout, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateDeleteRequest(int? timeout, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -425,9 +348,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             if (timeout != null)
             {
                 uri.AppendQuery("timeout", timeout.Value, true);
@@ -443,24 +363,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> removes the file from the storage account. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileDeleteHeaders>> DeleteAsync(string shareName, string fileName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<FileDeleteHeaders>> DeleteAsync(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateDeleteRequest(shareName, fileName, timeout, leaseAccessConditions);
+            using var message = CreateDeleteRequest(timeout, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileDeleteHeaders(message.Response);
             switch (message.Response.Status)
@@ -473,24 +381,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> removes the file from the storage account. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<FileDeleteHeaders> Delete(string shareName, string fileName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<FileDeleteHeaders> Delete(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateDeleteRequest(shareName, fileName, timeout, leaseAccessConditions);
+            using var message = CreateDeleteRequest(timeout, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileDeleteHeaders(message.Response);
             switch (message.Response.Status)
@@ -502,7 +398,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateSetHttpHeadersRequest(string shareName, string fileName, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, long? fileContentLength, string filePermission, string filePermissionKey, FileHttpHeaders fileHttpHeaders, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateSetHttpHeadersRequest(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout, long? fileContentLength, string filePermission, string filePermissionKey, FileHttpHeaders fileHttpHeaders, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -510,9 +406,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "properties", true);
             if (timeout != null)
             {
@@ -568,8 +461,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets HTTP headers on the file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
         /// <param name="fileLastWriteTime"> Last write time for the file/directory. Default value: Now. </param>
@@ -580,17 +471,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="fileHttpHeaders"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileSetHttpHeadersHeaders>> SetHttpHeadersAsync(string shareName, string fileName, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, long? fileContentLength = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileSetHttpHeadersHeaders>> SetHttpHeadersAsync(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, long? fileContentLength = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -604,7 +487,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateSetHttpHeadersRequest(shareName, fileName, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, fileContentLength, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
+            using var message = CreateSetHttpHeadersRequest(fileAttributes, fileCreationTime, fileLastWriteTime, timeout, fileContentLength, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileSetHttpHeadersHeaders(message.Response);
             switch (message.Response.Status)
@@ -617,8 +500,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets HTTP headers on the file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="fileAttributes"> If specified, the provided file attributes shall be set. Default value: ‘Archive’ for file and ‘Directory’ for directory. ‘None’ can also be specified as default. </param>
         /// <param name="fileCreationTime"> Creation time for the file/directory. Default value: Now. </param>
         /// <param name="fileLastWriteTime"> Last write time for the file/directory. Default value: Now. </param>
@@ -629,17 +510,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="fileHttpHeaders"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
-        public ResponseWithHeaders<FileSetHttpHeadersHeaders> SetHttpHeaders(string shareName, string fileName, string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, long? fileContentLength = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="fileAttributes"/>, <paramref name="fileCreationTime"/>, or <paramref name="fileLastWriteTime"/> is null. </exception>
+        public ResponseWithHeaders<FileSetHttpHeadersHeaders> SetHttpHeaders(string fileAttributes, string fileCreationTime, string fileLastWriteTime, int? timeout = null, long? fileContentLength = null, string filePermission = null, string filePermissionKey = null, FileHttpHeaders fileHttpHeaders = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (fileAttributes == null)
             {
                 throw new ArgumentNullException(nameof(fileAttributes));
@@ -653,7 +526,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(fileLastWriteTime));
             }
 
-            using var message = CreateSetHttpHeadersRequest(shareName, fileName, fileAttributes, fileCreationTime, fileLastWriteTime, timeout, fileContentLength, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
+            using var message = CreateSetHttpHeadersRequest(fileAttributes, fileCreationTime, fileLastWriteTime, timeout, fileContentLength, filePermission, filePermissionKey, fileHttpHeaders, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileSetHttpHeadersHeaders(message.Response);
             switch (message.Response.Status)
@@ -665,7 +538,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateSetMetadataRequest(string shareName, string fileName, int? timeout, IDictionary<string, string> metadata, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateSetMetadataRequest(int? timeout, IDictionary<string, string> metadata, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -673,9 +546,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "metadata", true);
             if (timeout != null)
             {
@@ -696,25 +566,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Updates user-defined metadata for the specified file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileSetMetadataHeaders>> SetMetadataAsync(string shareName, string fileName, int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<FileSetMetadataHeaders>> SetMetadataAsync(int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateSetMetadataRequest(shareName, fileName, timeout, metadata, leaseAccessConditions);
+            using var message = CreateSetMetadataRequest(timeout, metadata, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileSetMetadataHeaders(message.Response);
             switch (message.Response.Status)
@@ -727,25 +585,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Updates user-defined metadata for the specified file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<FileSetMetadataHeaders> SetMetadata(string shareName, string fileName, int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<FileSetMetadataHeaders> SetMetadata(int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateSetMetadataRequest(shareName, fileName, timeout, metadata, leaseAccessConditions);
+            using var message = CreateSetMetadataRequest(timeout, metadata, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileSetMetadataHeaders(message.Response);
             switch (message.Response.Status)
@@ -757,7 +603,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateAcquireLeaseRequest(string shareName, string fileName, int? timeout, int? duration, string proposedLeaseId)
+        internal HttpMessage CreateAcquireLeaseRequest(int? timeout, int? duration, string proposedLeaseId)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -765,9 +611,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "lease", true);
             if (timeout != null)
             {
@@ -789,25 +632,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="duration"> Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires. A non-infinite lease can be between 15 and 60 seconds. A lease duration cannot be changed using renew or change. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileAcquireLeaseHeaders>> AcquireLeaseAsync(string shareName, string fileName, int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<FileAcquireLeaseHeaders>> AcquireLeaseAsync(int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateAcquireLeaseRequest(shareName, fileName, timeout, duration, proposedLeaseId);
+            using var message = CreateAcquireLeaseRequest(timeout, duration, proposedLeaseId);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileAcquireLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -820,25 +651,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="duration"> Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires. A non-infinite lease can be between 15 and 60 seconds. A lease duration cannot be changed using renew or change. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<FileAcquireLeaseHeaders> AcquireLease(string shareName, string fileName, int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<FileAcquireLeaseHeaders> AcquireLease(int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateAcquireLeaseRequest(shareName, fileName, timeout, duration, proposedLeaseId);
+            using var message = CreateAcquireLeaseRequest(timeout, duration, proposedLeaseId);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileAcquireLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -850,7 +669,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateReleaseLeaseRequest(string shareName, string fileName, string leaseId, int? timeout)
+        internal HttpMessage CreateReleaseLeaseRequest(string leaseId, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -858,9 +677,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "lease", true);
             if (timeout != null)
             {
@@ -875,28 +691,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="leaseId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileReleaseLeaseHeaders>> ReleaseLeaseAsync(string shareName, string fileName, string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileReleaseLeaseHeaders>> ReleaseLeaseAsync(string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateReleaseLeaseRequest(shareName, fileName, leaseId, timeout);
+            using var message = CreateReleaseLeaseRequest(leaseId, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileReleaseLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -909,28 +715,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="leaseId"/> is null. </exception>
-        public ResponseWithHeaders<FileReleaseLeaseHeaders> ReleaseLease(string shareName, string fileName, string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public ResponseWithHeaders<FileReleaseLeaseHeaders> ReleaseLease(string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateReleaseLeaseRequest(shareName, fileName, leaseId, timeout);
+            using var message = CreateReleaseLeaseRequest(leaseId, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileReleaseLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -942,7 +738,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateChangeLeaseRequest(string shareName, string fileName, string leaseId, int? timeout, string proposedLeaseId)
+        internal HttpMessage CreateChangeLeaseRequest(string leaseId, int? timeout, string proposedLeaseId)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -950,9 +746,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "lease", true);
             if (timeout != null)
             {
@@ -971,29 +764,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="leaseId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileChangeLeaseHeaders>> ChangeLeaseAsync(string shareName, string fileName, string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileChangeLeaseHeaders>> ChangeLeaseAsync(string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateChangeLeaseRequest(shareName, fileName, leaseId, timeout, proposedLeaseId);
+            using var message = CreateChangeLeaseRequest(leaseId, timeout, proposedLeaseId);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileChangeLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -1006,29 +789,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="leaseId"/> is null. </exception>
-        public ResponseWithHeaders<FileChangeLeaseHeaders> ChangeLease(string shareName, string fileName, string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public ResponseWithHeaders<FileChangeLeaseHeaders> ChangeLease(string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateChangeLeaseRequest(shareName, fileName, leaseId, timeout, proposedLeaseId);
+            using var message = CreateChangeLeaseRequest(leaseId, timeout, proposedLeaseId);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileChangeLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -1040,7 +813,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateBreakLeaseRequest(string shareName, string fileName, int? timeout, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateBreakLeaseRequest(int? timeout, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1048,9 +821,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "lease", true);
             if (timeout != null)
             {
@@ -1068,24 +838,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileBreakLeaseHeaders>> BreakLeaseAsync(string shareName, string fileName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<FileBreakLeaseHeaders>> BreakLeaseAsync(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateBreakLeaseRequest(shareName, fileName, timeout, leaseAccessConditions);
+            using var message = CreateBreakLeaseRequest(timeout, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileBreakLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -1098,24 +856,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> [Update] The Lease File operation establishes and manages a lock on a file for write and delete operations. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<FileBreakLeaseHeaders> BreakLease(string shareName, string fileName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<FileBreakLeaseHeaders> BreakLease(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateBreakLeaseRequest(shareName, fileName, timeout, leaseAccessConditions);
+            using var message = CreateBreakLeaseRequest(timeout, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileBreakLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -1127,7 +873,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateUploadRangeRequest(string shareName, string fileName, string range, ShareFileRangeWriteType fileRangeWrite, long contentLength, Stream optionalbody, int? timeout, byte[] contentMD5, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateUploadRangeRequest(string range, ShareFileRangeWriteType fileRangeWrite, long contentLength, Stream optionalbody, int? timeout, byte[] contentMD5, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1135,9 +881,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "range", true);
             if (timeout != null)
             {
@@ -1163,8 +906,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Upload a range of bytes to a file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="range"> Specifies the range of bytes to be written. Both the start and end of the range must be specified. For an update operation, the range can be up to 4 MB in size. For a clear operation, the range can be up to the value of the file&apos;s full size. The File service accepts only a single byte range for the Range and &apos;x-ms-range&apos; headers, and the byte range must be specified in the following format: bytes=startByte-endByte. </param>
         /// <param name="fileRangeWrite"> Specify one of the following options: - Update: Writes the bytes specified by the request body into the specified range. The Range and Content-Length headers must match to perform the update. - Clear: Clears the specified range and releases the space used in storage for that range. To clear a range, set the Content-Length header to zero, and set the Range header to a value that indicates the range to clear, up to maximum file size. </param>
         /// <param name="contentLength"> Specifies the number of bytes being transmitted in the request body. When the x-ms-write header is set to clear, the value of this header must be set to zero. </param>
@@ -1173,17 +914,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="contentMD5"> An MD5 hash of the content. This hash is used to verify the integrity of the data during transport. When the Content-MD5 header is specified, the File service compares the hash of the content that has arrived with the header value that was sent. If the two hashes do not match, the operation will fail with error code 400 (Bad Request). </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="range"/>, or <paramref name="optionalbody"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileUploadRangeHeaders>> UploadRangeAsync(string shareName, string fileName, string range, ShareFileRangeWriteType fileRangeWrite, long contentLength, Stream optionalbody, int? timeout = null, byte[] contentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="range"/> or <paramref name="optionalbody"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileUploadRangeHeaders>> UploadRangeAsync(string range, ShareFileRangeWriteType fileRangeWrite, long contentLength, Stream optionalbody, int? timeout = null, byte[] contentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (range == null)
             {
                 throw new ArgumentNullException(nameof(range));
@@ -1193,7 +926,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(optionalbody));
             }
 
-            using var message = CreateUploadRangeRequest(shareName, fileName, range, fileRangeWrite, contentLength, optionalbody, timeout, contentMD5, leaseAccessConditions);
+            using var message = CreateUploadRangeRequest(range, fileRangeWrite, contentLength, optionalbody, timeout, contentMD5, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileUploadRangeHeaders(message.Response);
             switch (message.Response.Status)
@@ -1206,8 +939,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Upload a range of bytes to a file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="range"> Specifies the range of bytes to be written. Both the start and end of the range must be specified. For an update operation, the range can be up to 4 MB in size. For a clear operation, the range can be up to the value of the file&apos;s full size. The File service accepts only a single byte range for the Range and &apos;x-ms-range&apos; headers, and the byte range must be specified in the following format: bytes=startByte-endByte. </param>
         /// <param name="fileRangeWrite"> Specify one of the following options: - Update: Writes the bytes specified by the request body into the specified range. The Range and Content-Length headers must match to perform the update. - Clear: Clears the specified range and releases the space used in storage for that range. To clear a range, set the Content-Length header to zero, and set the Range header to a value that indicates the range to clear, up to maximum file size. </param>
         /// <param name="contentLength"> Specifies the number of bytes being transmitted in the request body. When the x-ms-write header is set to clear, the value of this header must be set to zero. </param>
@@ -1216,17 +947,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="contentMD5"> An MD5 hash of the content. This hash is used to verify the integrity of the data during transport. When the Content-MD5 header is specified, the File service compares the hash of the content that has arrived with the header value that was sent. If the two hashes do not match, the operation will fail with error code 400 (Bad Request). </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="range"/>, or <paramref name="optionalbody"/> is null. </exception>
-        public ResponseWithHeaders<FileUploadRangeHeaders> UploadRange(string shareName, string fileName, string range, ShareFileRangeWriteType fileRangeWrite, long contentLength, Stream optionalbody, int? timeout = null, byte[] contentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="range"/> or <paramref name="optionalbody"/> is null. </exception>
+        public ResponseWithHeaders<FileUploadRangeHeaders> UploadRange(string range, ShareFileRangeWriteType fileRangeWrite, long contentLength, Stream optionalbody, int? timeout = null, byte[] contentMD5 = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (range == null)
             {
                 throw new ArgumentNullException(nameof(range));
@@ -1236,7 +959,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(optionalbody));
             }
 
-            using var message = CreateUploadRangeRequest(shareName, fileName, range, fileRangeWrite, contentLength, optionalbody, timeout, contentMD5, leaseAccessConditions);
+            using var message = CreateUploadRangeRequest(range, fileRangeWrite, contentLength, optionalbody, timeout, contentMD5, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileUploadRangeHeaders(message.Response);
             switch (message.Response.Status)
@@ -1248,7 +971,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateUploadRangeFromURLRequest(string shareName, string fileName, string range, string copySource, long contentLength, int? timeout, string sourceRange, byte[] sourceContentCrc64, SourceModifiedAccessConditions sourceModifiedAccessConditions, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateUploadRangeFromURLRequest(string range, string copySource, long contentLength, int? timeout, string sourceRange, byte[] sourceContentCrc64, SourceModifiedAccessConditions sourceModifiedAccessConditions, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1256,9 +979,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "range", true);
             if (timeout != null)
             {
@@ -1294,8 +1014,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Upload a range of bytes to a file where the contents are read from a URL. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="range"> Writes data to the specified byte range in the file. </param>
         /// <param name="copySource"> Specifies the URL of the source file or blob, up to 2 KB in length. To copy a file to another file within the same storage account, you may use Shared Key to authenticate the source file. If you are copying a file from another storage account, or if you are copying a blob from the same storage account or another storage account, then you must authenticate the source file or blob using a shared access signature. If the source is a public blob, no authentication is required to perform the copy operation. A file in a share snapshot can also be specified as a copy source. </param>
         /// <param name="contentLength"> Specifies the number of bytes being transmitted in the request body. When the x-ms-write header is set to clear, the value of this header must be set to zero. </param>
@@ -1305,17 +1023,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="sourceModifiedAccessConditions"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="range"/>, or <paramref name="copySource"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileUploadRangeFromURLHeaders>> UploadRangeFromURLAsync(string shareName, string fileName, string range, string copySource, long contentLength, int? timeout = null, string sourceRange = null, byte[] sourceContentCrc64 = null, SourceModifiedAccessConditions sourceModifiedAccessConditions = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="range"/> or <paramref name="copySource"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileUploadRangeFromURLHeaders>> UploadRangeFromURLAsync(string range, string copySource, long contentLength, int? timeout = null, string sourceRange = null, byte[] sourceContentCrc64 = null, SourceModifiedAccessConditions sourceModifiedAccessConditions = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (range == null)
             {
                 throw new ArgumentNullException(nameof(range));
@@ -1325,7 +1035,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(copySource));
             }
 
-            using var message = CreateUploadRangeFromURLRequest(shareName, fileName, range, copySource, contentLength, timeout, sourceRange, sourceContentCrc64, sourceModifiedAccessConditions, leaseAccessConditions);
+            using var message = CreateUploadRangeFromURLRequest(range, copySource, contentLength, timeout, sourceRange, sourceContentCrc64, sourceModifiedAccessConditions, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileUploadRangeFromURLHeaders(message.Response);
             switch (message.Response.Status)
@@ -1338,8 +1048,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Upload a range of bytes to a file where the contents are read from a URL. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="range"> Writes data to the specified byte range in the file. </param>
         /// <param name="copySource"> Specifies the URL of the source file or blob, up to 2 KB in length. To copy a file to another file within the same storage account, you may use Shared Key to authenticate the source file. If you are copying a file from another storage account, or if you are copying a blob from the same storage account or another storage account, then you must authenticate the source file or blob using a shared access signature. If the source is a public blob, no authentication is required to perform the copy operation. A file in a share snapshot can also be specified as a copy source. </param>
         /// <param name="contentLength"> Specifies the number of bytes being transmitted in the request body. When the x-ms-write header is set to clear, the value of this header must be set to zero. </param>
@@ -1349,17 +1057,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="sourceModifiedAccessConditions"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, <paramref name="range"/>, or <paramref name="copySource"/> is null. </exception>
-        public ResponseWithHeaders<FileUploadRangeFromURLHeaders> UploadRangeFromURL(string shareName, string fileName, string range, string copySource, long contentLength, int? timeout = null, string sourceRange = null, byte[] sourceContentCrc64 = null, SourceModifiedAccessConditions sourceModifiedAccessConditions = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="range"/> or <paramref name="copySource"/> is null. </exception>
+        public ResponseWithHeaders<FileUploadRangeFromURLHeaders> UploadRangeFromURL(string range, string copySource, long contentLength, int? timeout = null, string sourceRange = null, byte[] sourceContentCrc64 = null, SourceModifiedAccessConditions sourceModifiedAccessConditions = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (range == null)
             {
                 throw new ArgumentNullException(nameof(range));
@@ -1369,7 +1069,7 @@ namespace Azure.Storage.Files.Shares
                 throw new ArgumentNullException(nameof(copySource));
             }
 
-            using var message = CreateUploadRangeFromURLRequest(shareName, fileName, range, copySource, contentLength, timeout, sourceRange, sourceContentCrc64, sourceModifiedAccessConditions, leaseAccessConditions);
+            using var message = CreateUploadRangeFromURLRequest(range, copySource, contentLength, timeout, sourceRange, sourceContentCrc64, sourceModifiedAccessConditions, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileUploadRangeFromURLHeaders(message.Response);
             switch (message.Response.Status)
@@ -1381,7 +1081,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateGetRangeListRequest(string shareName, string fileName, string prevsharesnapshot, int? timeout, string range, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateGetRangeListRequest(string prevsharesnapshot, int? timeout, string range, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1389,9 +1089,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "rangelist", true);
             if (sharesnapshot != null)
             {
@@ -1420,26 +1117,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns the list of valid ranges for a file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="prevsharesnapshot"> The previous snapshot parameter is an opaque DateTime value that, when present, specifies the previous snapshot. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="range"> Specifies the range of bytes over which to list ranges, inclusively. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareFileRangeList, FileGetRangeListHeaders>> GetRangeListAsync(string shareName, string fileName, string prevsharesnapshot = null, int? timeout = null, string range = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareFileRangeList, FileGetRangeListHeaders>> GetRangeListAsync(string prevsharesnapshot = null, int? timeout = null, string range = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateGetRangeListRequest(shareName, fileName, prevsharesnapshot, timeout, range, leaseAccessConditions);
+            using var message = CreateGetRangeListRequest(prevsharesnapshot, timeout, range, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileGetRangeListHeaders(message.Response);
             switch (message.Response.Status)
@@ -1460,26 +1145,14 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns the list of valid ranges for a file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="prevsharesnapshot"> The previous snapshot parameter is an opaque DateTime value that, when present, specifies the previous snapshot. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="range"> Specifies the range of bytes over which to list ranges, inclusively. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<ShareFileRangeList, FileGetRangeListHeaders> GetRangeList(string shareName, string fileName, string prevsharesnapshot = null, int? timeout = null, string range = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareFileRangeList, FileGetRangeListHeaders> GetRangeList(string prevsharesnapshot = null, int? timeout = null, string range = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateGetRangeListRequest(shareName, fileName, prevsharesnapshot, timeout, range, leaseAccessConditions);
+            using var message = CreateGetRangeListRequest(prevsharesnapshot, timeout, range, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileGetRangeListHeaders(message.Response);
             switch (message.Response.Status)
@@ -1499,7 +1172,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateStartCopyRequest(string shareName, string fileName, string copySource, int? timeout, IDictionary<string, string> metadata, string filePermission, string filePermissionKey, CopyFileSmbInfo copyFileSmbInfo, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateStartCopyRequest(string copySource, int? timeout, IDictionary<string, string> metadata, string filePermission, string filePermissionKey, CopyFileSmbInfo copyFileSmbInfo, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1507,9 +1180,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             if (timeout != null)
             {
                 uri.AppendQuery("timeout", timeout.Value, true);
@@ -1562,8 +1232,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Copies a blob or file to a destination file within the storage account. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="copySource"> Specifies the URL of the source file or blob, up to 2 KB in length. To copy a file to another file within the same storage account, you may use Shared Key to authenticate the source file. If you are copying a file from another storage account, or if you are copying a blob from the same storage account or another storage account, then you must authenticate the source file or blob using a shared access signature. If the source is a public blob, no authentication is required to perform the copy operation. A file in a share snapshot can also be specified as a copy source. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
@@ -1572,23 +1240,15 @@ namespace Azure.Storage.Files.Shares
         /// <param name="copyFileSmbInfo"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="copySource"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileStartCopyHeaders>> StartCopyAsync(string shareName, string fileName, string copySource, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CopyFileSmbInfo copyFileSmbInfo = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="copySource"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileStartCopyHeaders>> StartCopyAsync(string copySource, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CopyFileSmbInfo copyFileSmbInfo = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (copySource == null)
             {
                 throw new ArgumentNullException(nameof(copySource));
             }
 
-            using var message = CreateStartCopyRequest(shareName, fileName, copySource, timeout, metadata, filePermission, filePermissionKey, copyFileSmbInfo, leaseAccessConditions);
+            using var message = CreateStartCopyRequest(copySource, timeout, metadata, filePermission, filePermissionKey, copyFileSmbInfo, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileStartCopyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1601,8 +1261,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Copies a blob or file to a destination file within the storage account. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="copySource"> Specifies the URL of the source file or blob, up to 2 KB in length. To copy a file to another file within the same storage account, you may use Shared Key to authenticate the source file. If you are copying a file from another storage account, or if you are copying a blob from the same storage account or another storage account, then you must authenticate the source file or blob using a shared access signature. If the source is a public blob, no authentication is required to perform the copy operation. A file in a share snapshot can also be specified as a copy source. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
@@ -1611,23 +1269,15 @@ namespace Azure.Storage.Files.Shares
         /// <param name="copyFileSmbInfo"> Parameter group. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="copySource"/> is null. </exception>
-        public ResponseWithHeaders<FileStartCopyHeaders> StartCopy(string shareName, string fileName, string copySource, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CopyFileSmbInfo copyFileSmbInfo = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="copySource"/> is null. </exception>
+        public ResponseWithHeaders<FileStartCopyHeaders> StartCopy(string copySource, int? timeout = null, IDictionary<string, string> metadata = null, string filePermission = null, string filePermissionKey = null, CopyFileSmbInfo copyFileSmbInfo = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (copySource == null)
             {
                 throw new ArgumentNullException(nameof(copySource));
             }
 
-            using var message = CreateStartCopyRequest(shareName, fileName, copySource, timeout, metadata, filePermission, filePermissionKey, copyFileSmbInfo, leaseAccessConditions);
+            using var message = CreateStartCopyRequest(copySource, timeout, metadata, filePermission, filePermissionKey, copyFileSmbInfo, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileStartCopyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1639,7 +1289,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateAbortCopyRequest(string shareName, string fileName, string copyId, int? timeout, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateAbortCopyRequest(string copyId, int? timeout, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1647,9 +1297,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "copy", true);
             uri.AppendQuery("copyid", copyId, true);
             if (timeout != null)
@@ -1668,29 +1315,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Aborts a pending Copy File operation, and leaves a destination file with zero length and full metadata. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="copyId"> The copy identifier provided in the x-ms-copy-id header of the original Copy File operation. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="copyId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileAbortCopyHeaders>> AbortCopyAsync(string shareName, string fileName, string copyId, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="copyId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileAbortCopyHeaders>> AbortCopyAsync(string copyId, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (copyId == null)
             {
                 throw new ArgumentNullException(nameof(copyId));
             }
 
-            using var message = CreateAbortCopyRequest(shareName, fileName, copyId, timeout, leaseAccessConditions);
+            using var message = CreateAbortCopyRequest(copyId, timeout, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileAbortCopyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1703,29 +1340,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Aborts a pending Copy File operation, and leaves a destination file with zero length and full metadata. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="copyId"> The copy identifier provided in the x-ms-copy-id header of the original Copy File operation. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="copyId"/> is null. </exception>
-        public ResponseWithHeaders<FileAbortCopyHeaders> AbortCopy(string shareName, string fileName, string copyId, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="copyId"/> is null. </exception>
+        public ResponseWithHeaders<FileAbortCopyHeaders> AbortCopy(string copyId, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (copyId == null)
             {
                 throw new ArgumentNullException(nameof(copyId));
             }
 
-            using var message = CreateAbortCopyRequest(shareName, fileName, copyId, timeout, leaseAccessConditions);
+            using var message = CreateAbortCopyRequest(copyId, timeout, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileAbortCopyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1737,7 +1364,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateListHandlesRequest(string shareName, string fileName, string marker, int? maxresults, int? timeout)
+        internal HttpMessage CreateListHandlesRequest(string marker, int? maxresults, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1745,9 +1372,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "listhandles", true);
             if (marker != null)
             {
@@ -1772,25 +1396,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Lists handles for file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ListHandlesResponse, FileListHandlesHeaders>> ListHandlesAsync(string shareName, string fileName, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ListHandlesResponse, FileListHandlesHeaders>> ListHandlesAsync(string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateListHandlesRequest(shareName, fileName, marker, maxresults, timeout);
+            using var message = CreateListHandlesRequest(marker, maxresults, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileListHandlesHeaders(message.Response);
             switch (message.Response.Status)
@@ -1811,25 +1423,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Lists handles for file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="maxresults"> Specifies the maximum number of entries to return. If the request does not specify maxresults, or specifies a value greater than 5,000, the server will return up to 5,000 items. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="fileName"/> is null. </exception>
-        public ResponseWithHeaders<ListHandlesResponse, FileListHandlesHeaders> ListHandles(string shareName, string fileName, string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ListHandlesResponse, FileListHandlesHeaders> ListHandles(string marker = null, int? maxresults = null, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            using var message = CreateListHandlesRequest(shareName, fileName, marker, maxresults, timeout);
+            using var message = CreateListHandlesRequest(marker, maxresults, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileListHandlesHeaders(message.Response);
             switch (message.Response.Status)
@@ -1849,7 +1449,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateForceCloseHandlesRequest(string shareName, string fileName, string handleId, int? timeout, string marker)
+        internal HttpMessage CreateForceCloseHandlesRequest(string handleId, int? timeout, string marker)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1857,9 +1457,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
-            uri.AppendPath("/", false);
-            uri.AppendPath(fileName, true);
             uri.AppendQuery("comp", "forceclosehandles", true);
             if (timeout != null)
             {
@@ -1881,29 +1478,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Closes all handles open for given file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="handleId"> Specifies handle ID opened on the file or directory to be closed. Asterisk (‘*’) is a wildcard that specifies all handles. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="handleId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<FileForceCloseHandlesHeaders>> ForceCloseHandlesAsync(string shareName, string fileName, string handleId, int? timeout = null, string marker = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="handleId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<FileForceCloseHandlesHeaders>> ForceCloseHandlesAsync(string handleId, int? timeout = null, string marker = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (handleId == null)
             {
                 throw new ArgumentNullException(nameof(handleId));
             }
 
-            using var message = CreateForceCloseHandlesRequest(shareName, fileName, handleId, timeout, marker);
+            using var message = CreateForceCloseHandlesRequest(handleId, timeout, marker);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new FileForceCloseHandlesHeaders(message.Response);
             switch (message.Response.Status)
@@ -1916,29 +1503,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Closes all handles open for given file. </summary>
-        /// <param name="shareName"> The share name. </param>
-        /// <param name="fileName"> The file name. </param>
         /// <param name="handleId"> Specifies handle ID opened on the file or directory to be closed. Asterisk (‘*’) is a wildcard that specifies all handles. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="marker"> A string value that identifies the portion of the list to be returned with the next list operation. The operation returns a marker value within the response body if the list returned was not complete. The marker value may then be used in a subsequent call to request the next set of list items. The marker value is opaque to the client. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/>, <paramref name="fileName"/>, or <paramref name="handleId"/> is null. </exception>
-        public ResponseWithHeaders<FileForceCloseHandlesHeaders> ForceCloseHandles(string shareName, string fileName, string handleId, int? timeout = null, string marker = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="handleId"/> is null. </exception>
+        public ResponseWithHeaders<FileForceCloseHandlesHeaders> ForceCloseHandles(string handleId, int? timeout = null, string marker = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
             if (handleId == null)
             {
                 throw new ArgumentNullException(nameof(handleId));
             }
 
-            using var message = CreateForceCloseHandlesRequest(shareName, fileName, handleId, timeout, marker);
+            using var message = CreateForceCloseHandlesRequest(handleId, timeout, marker);
             _pipeline.Send(message, cancellationToken);
             var headers = new FileForceCloseHandlesHeaders(message.Response);
             switch (message.Response.Status)

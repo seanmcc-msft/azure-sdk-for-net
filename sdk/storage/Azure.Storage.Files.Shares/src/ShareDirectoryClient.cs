@@ -228,13 +228,10 @@ namespace Azure.Storage.Files.Shares
             _clientDiagnostics = new ClientDiagnostics(options);
             _storageSharedKeyCredential = conn.Credentials as StorageSharedKeyCredential;
 
-            uriBuilder.ShareName = null;
-            uriBuilder.DirectoryOrFilePath = null;
-
             _directoryRestClient = new DirectoryRestClient(
                 _clientDiagnostics,
                 _pipeline,
-                uriBuilder.ToUri().ToString(),
+                _uri.ToString(),
                 _version.ToVersionString(),
                 // TODO
                 sharesnapshot: null);
@@ -314,16 +311,10 @@ namespace Azure.Storage.Files.Shares
             _clientDiagnostics = new ClientDiagnostics(options);
             _storageSharedKeyCredential = storageSharedKeyCredential;
 
-            ShareUriBuilder uriBuilder = new ShareUriBuilder(directoryUri)
-            {
-                ShareName = null,
-                DirectoryOrFilePath = null
-            };
-
             _directoryRestClient = new DirectoryRestClient(
                 _clientDiagnostics,
                 _pipeline,
-                uriBuilder.ToUri().ToString(),
+                _uri.ToString(),
                 _version.ToVersionString(),
                 // TODO
                 sharesnapshot: null);
@@ -364,16 +355,10 @@ namespace Azure.Storage.Files.Shares
             _storageSharedKeyCredential = storageSharedKeyCredential;
             _clientDiagnostics = clientDiagnostics;
 
-            ShareUriBuilder uriBuilder = new ShareUriBuilder(directoryUri)
-            {
-                ShareName = null,
-                DirectoryOrFilePath = null
-            };
-
             _directoryRestClient = new DirectoryRestClient(
                 _clientDiagnostics,
                 _pipeline,
-                uriBuilder.ToUri().ToString(),
+                _uri.ToString(),
                 _version.ToVersionString(),
                 // TODO
                 sharesnapshot: null);
@@ -617,8 +602,6 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.CreateAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             fileAttributes: smbProps.FileAttributes?.ToAttributesString() ?? Constants.File.FileAttributesNone,
                             fileCreationTime: smbProps.FileCreatedOn.ToFileDateTimeString() ?? Constants.File.FileTimeNow,
                             fileLastWriteTime: smbProps.FileLastWrittenOn.ToFileDateTimeString() ?? Constants.File.FileTimeNow,
@@ -631,8 +614,6 @@ namespace Azure.Storage.Files.Shares
                     else
                     {
                         response = _directoryRestClient.Create(
-                            shareName: ShareName,
-                            directory: Path,
                             fileAttributes: smbProps.FileAttributes?.ToAttributesString() ?? Constants.File.FileAttributesNone,
                             fileCreationTime: smbProps.FileCreatedOn.ToFileDateTimeString() ?? Constants.File.FileTimeNow,
                             fileLastWriteTime: smbProps.FileLastWrittenOn.ToFileDateTimeString() ?? Constants.File.FileTimeNow,
@@ -1138,16 +1119,12 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.DeleteAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
                         response = _directoryRestClient.Delete(
-                            shareName: ShareName,
-                            directory: Path,
                             cancellationToken: cancellationToken);
                     }
 
@@ -1278,16 +1255,12 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.GetPropertiesAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
                         response = _directoryRestClient.GetProperties(
-                            shareName: ShareName,
-                            directory: Path,
                             cancellationToken: cancellationToken);
                     }
 
@@ -1449,8 +1422,6 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.SetPropertiesAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             fileAttributes: smbProps.FileAttributes?.ToAttributesString() ?? Constants.File.Preserve,
                             fileCreationTime: smbProps.FileCreatedOn.ToFileDateTimeString() ?? Constants.File.Preserve,
                             fileLastWriteTime: smbProps.FileLastWrittenOn.ToFileDateTimeString() ?? Constants.File.Preserve,
@@ -1462,8 +1433,6 @@ namespace Azure.Storage.Files.Shares
                     else
                     {
                         response = _directoryRestClient.SetProperties(
-                            shareName: ShareName,
-                            directory: Path,
                             fileAttributes: smbProps.FileAttributes?.ToAttributesString() ?? Constants.File.Preserve,
                             fileCreationTime: smbProps.FileCreatedOn.ToFileDateTimeString() ?? Constants.File.Preserve,
                             fileLastWriteTime: smbProps.FileLastWrittenOn.ToFileDateTimeString() ?? Constants.File.Preserve,
@@ -1600,8 +1569,6 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.SetMetadataAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             metadata: metadata,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
@@ -1609,8 +1576,6 @@ namespace Azure.Storage.Files.Shares
                     else
                     {
                         response = _directoryRestClient.SetMetadata(
-                            shareName: ShareName,
-                            directory: Path,
                             metadata: metadata,
                             cancellationToken: cancellationToken);
                     }
@@ -1764,8 +1729,6 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.ListFilesAndDirectoriesSegmentAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             prefix: prefix,
                             marker: marker,
                             maxresults: pageSizeHint,
@@ -1775,8 +1738,6 @@ namespace Azure.Storage.Files.Shares
                     else
                     {
                         response = _directoryRestClient.ListFilesAndDirectoriesSegment(
-                            shareName: ShareName,
-                            directory: Path,
                             prefix: prefix,
                             marker: marker,
                             maxresults: pageSizeHint,
@@ -1929,8 +1890,6 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.ListHandlesAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             marker: marker,
                             maxresults: maxResults,
                             recursive: recursive,
@@ -1940,8 +1899,6 @@ namespace Azure.Storage.Files.Shares
                     else
                     {
                         response = _directoryRestClient.ListHandles(
-                            shareName: ShareName,
-                            directory: Path,
                             marker: marker,
                             maxresults: maxResults,
                             recursive: recursive,
@@ -2282,8 +2239,6 @@ namespace Azure.Storage.Files.Shares
                     if (async)
                     {
                         response = await _directoryRestClient.ForceCloseHandlesAsync(
-                            shareName: ShareName,
-                            directory: Path,
                             handleId: handleId,
                             marker: marker,
                             recursive: recursive,
@@ -2293,8 +2248,6 @@ namespace Azure.Storage.Files.Shares
                     else
                     {
                         response = _directoryRestClient.ForceCloseHandles(
-                            shareName: ShareName,
-                            directory: Path,
                             handleId: handleId,
                             marker: marker,
                             recursive: recursive,

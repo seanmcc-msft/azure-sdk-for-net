@@ -57,71 +57,54 @@ directive:
 ``` yaml
 directive:
 - from: swagger-document
-  where: $.parameters
-  transform: >
-    $.ShareName = {
-      "name": "shareName",
-      "in": "path",
-      "required": true,
-      "type": "string",
-      "x-ms-parameter-location": "method",
-      "description": "The share name."
-    };
-- from: swagger-document
-  where: $.parameters
-  transform: >
-    $.DirectoryName = {
-      "name": "directory",
-      "in": "path",
-      "required": true,
-      "type": "string",
-      "x-ms-parameter-location": "method",
-      "description": "The directory name."
-    };
-- from: swagger-document
-  where: $.parameters
-  transform: >
-    $.FileName = {
-      "name": "fileName",
-      "in": "path",
-      "required": true,
-      "type": "string",
-      "x-ms-parameter-location": "method",
-      "description": "The file name."
-    };
-- from: swagger-document
   where: $["x-ms-paths"]
   transform: >
    Object.keys($).map(id => {
-     if (id.includes('{directory}/{fileName}'))
+     if (id.includes('/{shareName}/{directory}?comp=listhandles'))
      {
-       $[id.replace('{directory}/{fileName}', '{fileName}')] = $[id];
+       $[id.replace('/{shareName}/{directory}?comp=listhandles', '/{shareName}/{directory}?restype=directory&comp=listhandles')] = $[id];
        delete $[id];
      }
    });
 - from: swagger-document
   where: $["x-ms-paths"]
   transform: >
-    for (const property in $)
-    {
-        if (property.includes('{shareName}'))
-        {
-            $[property].parameters.push({
-                "$ref": "#/parameters/ShareName"
-            });
-        };
-        if (property.includes('{directory}'))
-        {
-            $[property].parameters.push({
-                "$ref": "#/parameters/DirectoryName"
-            });
-        };
-        if (property.includes('{fileName}'))
-        {
-            $[property].parameters.push({
-                "$ref": "#/parameters/FileName"
-            });
-        }
-    }
+   Object.keys($).map(id => {
+     if (id.includes('/{shareName}/{directory}?comp=forceclosehandles'))
+     {
+       $[id.replace('/{shareName}/{directory}?comp=forceclosehandles', '/{shareName}/{directory}?restype=directory&comp=forceclosehandles')] = $[id];
+       delete $[id];
+     }
+   });
+- from: swagger-document
+  where: $["x-ms-paths"]
+  transform: >
+   Object.keys($).map(id => {
+     if (id.includes('{shareName}'))
+     {
+       $[id.replace('{shareName}', '')] = $[id];
+       delete $[id];
+     }
+   });
+- from: swagger-document
+  where: $["x-ms-paths"]
+  transform: >
+   Object.keys($).map(id => {
+     if (id.includes('/{directory}'))
+     {
+       $[id.replace('/{directory}', '')] = $[id];
+       delete $[id];
+     }
+   });
+- from: swagger-document
+  where: $["x-ms-paths"]
+  transform: >
+   Object.keys($).map(id => {
+     if (id.includes('/{fileName}'))
+     {
+       $[id.replace('/{fileName}', '')] = $[id];
+       delete $[id];
+     }
+   });
 ```
 

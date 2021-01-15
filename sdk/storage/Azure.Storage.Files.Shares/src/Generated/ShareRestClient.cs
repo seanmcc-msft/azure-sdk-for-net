@@ -50,7 +50,7 @@ namespace Azure.Storage.Files.Shares
             _pipeline = pipeline;
         }
 
-        internal HttpMessage CreateCreateRequest(string shareName, int? timeout, IDictionary<string, string> metadata, int? quota, ShareAccessTier? accessTier, string enabledProtocols, ShareRootSquash? rootSquash)
+        internal HttpMessage CreateCreateRequest(int? timeout, IDictionary<string, string> metadata, int? quota, ShareAccessTier? accessTier, string enabledProtocols, ShareRootSquash? rootSquash)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -58,7 +58,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             if (timeout != null)
             {
@@ -91,7 +90,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a new share under the specified account. If the share with the same name already exists, the operation fails. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="quota"> Specifies the maximum size of the share, in gigabytes. </param>
@@ -99,15 +97,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="enabledProtocols"> Protocols to enable on the share. </param>
         /// <param name="rootSquash"> Root squash to set on the share.  Only valid for NFS shares. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareCreateHeaders>> CreateAsync(string shareName, int? timeout = null, IDictionary<string, string> metadata = null, int? quota = null, ShareAccessTier? accessTier = null, string enabledProtocols = null, ShareRootSquash? rootSquash = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareCreateHeaders>> CreateAsync(int? timeout = null, IDictionary<string, string> metadata = null, int? quota = null, ShareAccessTier? accessTier = null, string enabledProtocols = null, ShareRootSquash? rootSquash = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateCreateRequest(shareName, timeout, metadata, quota, accessTier, enabledProtocols, rootSquash);
+            using var message = CreateCreateRequest(timeout, metadata, quota, accessTier, enabledProtocols, rootSquash);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareCreateHeaders(message.Response);
             switch (message.Response.Status)
@@ -120,7 +112,6 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a new share under the specified account. If the share with the same name already exists, the operation fails. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="quota"> Specifies the maximum size of the share, in gigabytes. </param>
@@ -128,15 +119,9 @@ namespace Azure.Storage.Files.Shares
         /// <param name="enabledProtocols"> Protocols to enable on the share. </param>
         /// <param name="rootSquash"> Root squash to set on the share.  Only valid for NFS shares. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareCreateHeaders> Create(string shareName, int? timeout = null, IDictionary<string, string> metadata = null, int? quota = null, ShareAccessTier? accessTier = null, string enabledProtocols = null, ShareRootSquash? rootSquash = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareCreateHeaders> Create(int? timeout = null, IDictionary<string, string> metadata = null, int? quota = null, ShareAccessTier? accessTier = null, string enabledProtocols = null, ShareRootSquash? rootSquash = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateCreateRequest(shareName, timeout, metadata, quota, accessTier, enabledProtocols, rootSquash);
+            using var message = CreateCreateRequest(timeout, metadata, quota, accessTier, enabledProtocols, rootSquash);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareCreateHeaders(message.Response);
             switch (message.Response.Status)
@@ -148,7 +133,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateGetPropertiesRequest(string shareName, int? timeout, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateGetPropertiesRequest(int? timeout, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -156,7 +141,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             if (sharesnapshot != null)
             {
@@ -177,19 +161,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns all user-defined metadata and system properties for the specified share or share snapshot. The data returned does not include the share&apos;s list of files. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareGetPropertiesHeaders>> GetPropertiesAsync(string shareName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareGetPropertiesHeaders>> GetPropertiesAsync(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateGetPropertiesRequest(shareName, timeout, leaseAccessConditions);
+            using var message = CreateGetPropertiesRequest(timeout, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareGetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -202,19 +179,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns all user-defined metadata and system properties for the specified share or share snapshot. The data returned does not include the share&apos;s list of files. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareGetPropertiesHeaders> GetProperties(string shareName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareGetPropertiesHeaders> GetProperties(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateGetPropertiesRequest(shareName, timeout, leaseAccessConditions);
+            using var message = CreateGetPropertiesRequest(timeout, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareGetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -226,7 +196,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateDeleteRequest(string shareName, int? timeout, DeleteSnapshotsOptionType? deleteSnapshots, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateDeleteRequest(int? timeout, DeleteSnapshotsOptionType? deleteSnapshots, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -234,7 +204,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             if (sharesnapshot != null)
             {
@@ -259,20 +228,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Operation marks the specified share or share snapshot for deletion. The share or share snapshot and any files contained within it are later deleted during garbage collection. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="deleteSnapshots"> Specifies the option include to delete the base share and all of its snapshots. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareDeleteHeaders>> DeleteAsync(string shareName, int? timeout = null, DeleteSnapshotsOptionType? deleteSnapshots = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareDeleteHeaders>> DeleteAsync(int? timeout = null, DeleteSnapshotsOptionType? deleteSnapshots = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateDeleteRequest(shareName, timeout, deleteSnapshots, leaseAccessConditions);
+            using var message = CreateDeleteRequest(timeout, deleteSnapshots, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareDeleteHeaders(message.Response);
             switch (message.Response.Status)
@@ -285,20 +247,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Operation marks the specified share or share snapshot for deletion. The share or share snapshot and any files contained within it are later deleted during garbage collection. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="deleteSnapshots"> Specifies the option include to delete the base share and all of its snapshots. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareDeleteHeaders> Delete(string shareName, int? timeout = null, DeleteSnapshotsOptionType? deleteSnapshots = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareDeleteHeaders> Delete(int? timeout = null, DeleteSnapshotsOptionType? deleteSnapshots = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateDeleteRequest(shareName, timeout, deleteSnapshots, leaseAccessConditions);
+            using var message = CreateDeleteRequest(timeout, deleteSnapshots, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareDeleteHeaders(message.Response);
             switch (message.Response.Status)
@@ -310,7 +265,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateAcquireLeaseRequest(string shareName, int? timeout, int? duration, string proposedLeaseId)
+        internal HttpMessage CreateAcquireLeaseRequest(int? timeout, int? duration, string proposedLeaseId)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -318,7 +273,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("comp", "lease", true);
             uri.AppendQuery("restype", "share", true);
             if (timeout != null)
@@ -345,20 +299,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="duration"> Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires. A non-infinite lease can be between 15 and 60 seconds. A lease duration cannot be changed using renew or change. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareAcquireLeaseHeaders>> AcquireLeaseAsync(string shareName, int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareAcquireLeaseHeaders>> AcquireLeaseAsync(int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateAcquireLeaseRequest(shareName, timeout, duration, proposedLeaseId);
+            using var message = CreateAcquireLeaseRequest(timeout, duration, proposedLeaseId);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareAcquireLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -371,20 +318,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="duration"> Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires. A non-infinite lease can be between 15 and 60 seconds. A lease duration cannot be changed using renew or change. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareAcquireLeaseHeaders> AcquireLease(string shareName, int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareAcquireLeaseHeaders> AcquireLease(int? timeout = null, int? duration = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateAcquireLeaseRequest(shareName, timeout, duration, proposedLeaseId);
+            using var message = CreateAcquireLeaseRequest(timeout, duration, proposedLeaseId);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareAcquireLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -396,7 +336,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateReleaseLeaseRequest(string shareName, string leaseId, int? timeout)
+        internal HttpMessage CreateReleaseLeaseRequest(string leaseId, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -404,7 +344,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("comp", "lease", true);
             uri.AppendQuery("restype", "share", true);
             if (timeout != null)
@@ -424,23 +363,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="leaseId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareReleaseLeaseHeaders>> ReleaseLeaseAsync(string shareName, string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<ShareReleaseLeaseHeaders>> ReleaseLeaseAsync(string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateReleaseLeaseRequest(shareName, leaseId, timeout);
+            using var message = CreateReleaseLeaseRequest(leaseId, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareReleaseLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -453,23 +387,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="leaseId"/> is null. </exception>
-        public ResponseWithHeaders<ShareReleaseLeaseHeaders> ReleaseLease(string shareName, string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public ResponseWithHeaders<ShareReleaseLeaseHeaders> ReleaseLease(string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateReleaseLeaseRequest(shareName, leaseId, timeout);
+            using var message = CreateReleaseLeaseRequest(leaseId, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareReleaseLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -481,7 +410,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateChangeLeaseRequest(string shareName, string leaseId, int? timeout, string proposedLeaseId)
+        internal HttpMessage CreateChangeLeaseRequest(string leaseId, int? timeout, string proposedLeaseId)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -489,7 +418,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("comp", "lease", true);
             uri.AppendQuery("restype", "share", true);
             if (timeout != null)
@@ -513,24 +441,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="leaseId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareChangeLeaseHeaders>> ChangeLeaseAsync(string shareName, string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<ShareChangeLeaseHeaders>> ChangeLeaseAsync(string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateChangeLeaseRequest(shareName, leaseId, timeout, proposedLeaseId);
+            using var message = CreateChangeLeaseRequest(leaseId, timeout, proposedLeaseId);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareChangeLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -543,24 +466,19 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="proposedLeaseId"> Proposed lease ID, in a GUID string format. The File service returns 400 (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor (String) for a list of valid GUID string formats. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="leaseId"/> is null. </exception>
-        public ResponseWithHeaders<ShareChangeLeaseHeaders> ChangeLease(string shareName, string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public ResponseWithHeaders<ShareChangeLeaseHeaders> ChangeLease(string leaseId, int? timeout = null, string proposedLeaseId = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateChangeLeaseRequest(shareName, leaseId, timeout, proposedLeaseId);
+            using var message = CreateChangeLeaseRequest(leaseId, timeout, proposedLeaseId);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareChangeLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -572,7 +490,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateRenewLeaseRequest(string shareName, string leaseId, int? timeout)
+        internal HttpMessage CreateRenewLeaseRequest(string leaseId, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -580,7 +498,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("comp", "lease", true);
             uri.AppendQuery("restype", "share", true);
             if (timeout != null)
@@ -600,23 +517,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="leaseId"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareRenewLeaseHeaders>> RenewLeaseAsync(string shareName, string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public async Task<ResponseWithHeaders<ShareRenewLeaseHeaders>> RenewLeaseAsync(string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateRenewLeaseRequest(shareName, leaseId, timeout);
+            using var message = CreateRenewLeaseRequest(leaseId, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareRenewLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -629,23 +541,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="leaseId"> Specifies the current lease ID on the resource. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="leaseId"/> is null. </exception>
-        public ResponseWithHeaders<ShareRenewLeaseHeaders> RenewLease(string shareName, string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="leaseId"/> is null. </exception>
+        public ResponseWithHeaders<ShareRenewLeaseHeaders> RenewLease(string leaseId, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (leaseId == null)
             {
                 throw new ArgumentNullException(nameof(leaseId));
             }
 
-            using var message = CreateRenewLeaseRequest(shareName, leaseId, timeout);
+            using var message = CreateRenewLeaseRequest(leaseId, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareRenewLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -657,7 +564,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateBreakLeaseRequest(string shareName, int? timeout, int? breakPeriod, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateBreakLeaseRequest(int? timeout, int? breakPeriod, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -665,7 +572,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("comp", "lease", true);
             uri.AppendQuery("restype", "share", true);
             if (timeout != null)
@@ -692,20 +598,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="breakPeriod"> For a break operation, proposed duration the lease should continue before it is broken, in seconds, between 0 and 60. This break period is only used if it is shorter than the time remaining on the lease. If longer, the time remaining on the lease is used. A new lease will not be available before the break period has expired, but the lease may be held for longer than the break period. If this header does not appear with a break operation, a fixed-duration lease breaks after the remaining lease period elapses, and an infinite lease breaks immediately. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareBreakLeaseHeaders>> BreakLeaseAsync(string shareName, int? timeout = null, int? breakPeriod = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareBreakLeaseHeaders>> BreakLeaseAsync(int? timeout = null, int? breakPeriod = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateBreakLeaseRequest(shareName, timeout, breakPeriod, leaseAccessConditions);
+            using var message = CreateBreakLeaseRequest(timeout, breakPeriod, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareBreakLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -718,20 +617,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> The Lease Share operation establishes and manages a lock on a share, or the specified snapshot for set and delete share operations. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="breakPeriod"> For a break operation, proposed duration the lease should continue before it is broken, in seconds, between 0 and 60. This break period is only used if it is shorter than the time remaining on the lease. If longer, the time remaining on the lease is used. A new lease will not be available before the break period has expired, but the lease may be held for longer than the break period. If this header does not appear with a break operation, a fixed-duration lease breaks after the remaining lease period elapses, and an infinite lease breaks immediately. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareBreakLeaseHeaders> BreakLease(string shareName, int? timeout = null, int? breakPeriod = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareBreakLeaseHeaders> BreakLease(int? timeout = null, int? breakPeriod = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateBreakLeaseRequest(shareName, timeout, breakPeriod, leaseAccessConditions);
+            using var message = CreateBreakLeaseRequest(timeout, breakPeriod, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareBreakLeaseHeaders(message.Response);
             switch (message.Response.Status)
@@ -743,7 +635,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateCreateSnapshotRequest(string shareName, int? timeout, IDictionary<string, string> metadata)
+        internal HttpMessage CreateCreateSnapshotRequest(int? timeout, IDictionary<string, string> metadata)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -751,7 +643,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "snapshot", true);
             if (timeout != null)
@@ -769,19 +660,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a read-only snapshot of a share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareCreateSnapshotHeaders>> CreateSnapshotAsync(string shareName, int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareCreateSnapshotHeaders>> CreateSnapshotAsync(int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateCreateSnapshotRequest(shareName, timeout, metadata);
+            using var message = CreateCreateSnapshotRequest(timeout, metadata);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareCreateSnapshotHeaders(message.Response);
             switch (message.Response.Status)
@@ -794,19 +678,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Creates a read-only snapshot of a share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareCreateSnapshotHeaders> CreateSnapshot(string shareName, int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareCreateSnapshotHeaders> CreateSnapshot(int? timeout = null, IDictionary<string, string> metadata = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateCreateSnapshotRequest(shareName, timeout, metadata);
+            using var message = CreateCreateSnapshotRequest(timeout, metadata);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareCreateSnapshotHeaders(message.Response);
             switch (message.Response.Status)
@@ -818,7 +695,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateCreatePermissionRequest(string shareName, SharePermission sharePermission, int? timeout)
+        internal HttpMessage CreateCreatePermissionRequest(SharePermission sharePermission, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -826,7 +703,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "filepermission", true);
             if (timeout != null)
@@ -844,23 +720,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Create a permission (a security descriptor). </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="sharePermission"> A permission (a security descriptor) at the share level. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="sharePermission"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareCreatePermissionHeaders>> CreatePermissionAsync(string shareName, SharePermission sharePermission, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="sharePermission"/> is null. </exception>
+        public async Task<ResponseWithHeaders<ShareCreatePermissionHeaders>> CreatePermissionAsync(SharePermission sharePermission, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (sharePermission == null)
             {
                 throw new ArgumentNullException(nameof(sharePermission));
             }
 
-            using var message = CreateCreatePermissionRequest(shareName, sharePermission, timeout);
+            using var message = CreateCreatePermissionRequest(sharePermission, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareCreatePermissionHeaders(message.Response);
             switch (message.Response.Status)
@@ -873,23 +744,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Create a permission (a security descriptor). </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="sharePermission"> A permission (a security descriptor) at the share level. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="sharePermission"/> is null. </exception>
-        public ResponseWithHeaders<ShareCreatePermissionHeaders> CreatePermission(string shareName, SharePermission sharePermission, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="sharePermission"/> is null. </exception>
+        public ResponseWithHeaders<ShareCreatePermissionHeaders> CreatePermission(SharePermission sharePermission, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (sharePermission == null)
             {
                 throw new ArgumentNullException(nameof(sharePermission));
             }
 
-            using var message = CreateCreatePermissionRequest(shareName, sharePermission, timeout);
+            using var message = CreateCreatePermissionRequest(sharePermission, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareCreatePermissionHeaders(message.Response);
             switch (message.Response.Status)
@@ -901,7 +767,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateGetPermissionRequest(string shareName, string filePermissionKey, int? timeout)
+        internal HttpMessage CreateGetPermissionRequest(string filePermissionKey, int? timeout)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -909,7 +775,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "filepermission", true);
             if (timeout != null)
@@ -924,23 +789,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns the permission (security descriptor) for a given key. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="filePermissionKey"> Key of the permission to be set for the directory/file. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="filePermissionKey"/> is null. </exception>
-        public async Task<ResponseWithHeaders<SharePermission, ShareGetPermissionHeaders>> GetPermissionAsync(string shareName, string filePermissionKey, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="filePermissionKey"/> is null. </exception>
+        public async Task<ResponseWithHeaders<SharePermission, ShareGetPermissionHeaders>> GetPermissionAsync(string filePermissionKey, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (filePermissionKey == null)
             {
                 throw new ArgumentNullException(nameof(filePermissionKey));
             }
 
-            using var message = CreateGetPermissionRequest(shareName, filePermissionKey, timeout);
+            using var message = CreateGetPermissionRequest(filePermissionKey, timeout);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareGetPermissionHeaders(message.Response);
             switch (message.Response.Status)
@@ -958,23 +818,18 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns the permission (security descriptor) for a given key. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="filePermissionKey"> Key of the permission to be set for the directory/file. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> or <paramref name="filePermissionKey"/> is null. </exception>
-        public ResponseWithHeaders<SharePermission, ShareGetPermissionHeaders> GetPermission(string shareName, string filePermissionKey, int? timeout = null, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentNullException"> <paramref name="filePermissionKey"/> is null. </exception>
+        public ResponseWithHeaders<SharePermission, ShareGetPermissionHeaders> GetPermission(string filePermissionKey, int? timeout = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
             if (filePermissionKey == null)
             {
                 throw new ArgumentNullException(nameof(filePermissionKey));
             }
 
-            using var message = CreateGetPermissionRequest(shareName, filePermissionKey, timeout);
+            using var message = CreateGetPermissionRequest(filePermissionKey, timeout);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareGetPermissionHeaders(message.Response);
             switch (message.Response.Status)
@@ -991,7 +846,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateSetPropertiesRequest(string shareName, int? timeout, int? quota, ShareAccessTier? accessTier, ShareRootSquash? rootSquash, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateSetPropertiesRequest(int? timeout, int? quota, ShareAccessTier? accessTier, ShareRootSquash? rootSquash, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -999,7 +854,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "properties", true);
             if (timeout != null)
@@ -1029,22 +883,15 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets properties for the specified share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="quota"> Specifies the maximum size of the share, in gigabytes. </param>
         /// <param name="accessTier"> Specifies the access tier of the share. </param>
         /// <param name="rootSquash"> Root squash to set on the share.  Only valid for NFS shares. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareSetPropertiesHeaders>> SetPropertiesAsync(string shareName, int? timeout = null, int? quota = null, ShareAccessTier? accessTier = null, ShareRootSquash? rootSquash = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareSetPropertiesHeaders>> SetPropertiesAsync(int? timeout = null, int? quota = null, ShareAccessTier? accessTier = null, ShareRootSquash? rootSquash = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateSetPropertiesRequest(shareName, timeout, quota, accessTier, rootSquash, leaseAccessConditions);
+            using var message = CreateSetPropertiesRequest(timeout, quota, accessTier, rootSquash, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareSetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -1057,22 +904,15 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets properties for the specified share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="quota"> Specifies the maximum size of the share, in gigabytes. </param>
         /// <param name="accessTier"> Specifies the access tier of the share. </param>
         /// <param name="rootSquash"> Root squash to set on the share.  Only valid for NFS shares. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareSetPropertiesHeaders> SetProperties(string shareName, int? timeout = null, int? quota = null, ShareAccessTier? accessTier = null, ShareRootSquash? rootSquash = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareSetPropertiesHeaders> SetProperties(int? timeout = null, int? quota = null, ShareAccessTier? accessTier = null, ShareRootSquash? rootSquash = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateSetPropertiesRequest(shareName, timeout, quota, accessTier, rootSquash, leaseAccessConditions);
+            using var message = CreateSetPropertiesRequest(timeout, quota, accessTier, rootSquash, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareSetPropertiesHeaders(message.Response);
             switch (message.Response.Status)
@@ -1084,7 +924,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateSetMetadataRequest(string shareName, int? timeout, IDictionary<string, string> metadata, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateSetMetadataRequest(int? timeout, IDictionary<string, string> metadata, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1092,7 +932,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "metadata", true);
             if (timeout != null)
@@ -1114,20 +953,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets one or more user-defined name-value pairs for the specified share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareSetMetadataHeaders>> SetMetadataAsync(string shareName, int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareSetMetadataHeaders>> SetMetadataAsync(int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateSetMetadataRequest(shareName, timeout, metadata, leaseAccessConditions);
+            using var message = CreateSetMetadataRequest(timeout, metadata, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareSetMetadataHeaders(message.Response);
             switch (message.Response.Status)
@@ -1140,20 +972,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets one or more user-defined name-value pairs for the specified share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="metadata"> A name-value pair to associate with a file storage object. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareSetMetadataHeaders> SetMetadata(string shareName, int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareSetMetadataHeaders> SetMetadata(int? timeout = null, IDictionary<string, string> metadata = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateSetMetadataRequest(shareName, timeout, metadata, leaseAccessConditions);
+            using var message = CreateSetMetadataRequest(timeout, metadata, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareSetMetadataHeaders(message.Response);
             switch (message.Response.Status)
@@ -1165,7 +990,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateGetAccessPolicyRequest(string shareName, int? timeout, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateGetAccessPolicyRequest(int? timeout, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1173,7 +998,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "acl", true);
             if (timeout != null)
@@ -1191,19 +1015,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns information about stored access policies specified on the share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<IReadOnlyList<ShareSignedIdentifier>, ShareGetAccessPolicyHeaders>> GetAccessPolicyAsync(string shareName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<IReadOnlyList<ShareSignedIdentifier>, ShareGetAccessPolicyHeaders>> GetAccessPolicyAsync(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateGetAccessPolicyRequest(shareName, timeout, leaseAccessConditions);
+            using var message = CreateGetAccessPolicyRequest(timeout, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareGetAccessPolicyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1229,19 +1046,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Returns information about stored access policies specified on the share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<IReadOnlyList<ShareSignedIdentifier>, ShareGetAccessPolicyHeaders> GetAccessPolicy(string shareName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<IReadOnlyList<ShareSignedIdentifier>, ShareGetAccessPolicyHeaders> GetAccessPolicy(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateGetAccessPolicyRequest(shareName, timeout, leaseAccessConditions);
+            using var message = CreateGetAccessPolicyRequest(timeout, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareGetAccessPolicyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1266,7 +1076,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateSetAccessPolicyRequest(string shareName, int? timeout, IEnumerable<ShareSignedIdentifier> shareAcl, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateSetAccessPolicyRequest(int? timeout, IEnumerable<ShareSignedIdentifier> shareAcl, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1274,7 +1084,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "acl", true);
             if (timeout != null)
@@ -1304,20 +1113,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets a stored access policy for use with shared access signatures. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="shareAcl"> The ACL for the share. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareSetAccessPolicyHeaders>> SetAccessPolicyAsync(string shareName, int? timeout = null, IEnumerable<ShareSignedIdentifier> shareAcl = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareSetAccessPolicyHeaders>> SetAccessPolicyAsync(int? timeout = null, IEnumerable<ShareSignedIdentifier> shareAcl = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateSetAccessPolicyRequest(shareName, timeout, shareAcl, leaseAccessConditions);
+            using var message = CreateSetAccessPolicyRequest(timeout, shareAcl, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareSetAccessPolicyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1330,20 +1132,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Sets a stored access policy for use with shared access signatures. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="shareAcl"> The ACL for the share. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareSetAccessPolicyHeaders> SetAccessPolicy(string shareName, int? timeout = null, IEnumerable<ShareSignedIdentifier> shareAcl = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareSetAccessPolicyHeaders> SetAccessPolicy(int? timeout = null, IEnumerable<ShareSignedIdentifier> shareAcl = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateSetAccessPolicyRequest(shareName, timeout, shareAcl, leaseAccessConditions);
+            using var message = CreateSetAccessPolicyRequest(timeout, shareAcl, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareSetAccessPolicyHeaders(message.Response);
             switch (message.Response.Status)
@@ -1355,7 +1150,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateGetStatisticsRequest(string shareName, int? timeout, ShareFileRequestConditions leaseAccessConditions)
+        internal HttpMessage CreateGetStatisticsRequest(int? timeout, ShareFileRequestConditions leaseAccessConditions)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1363,7 +1158,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "stats", true);
             if (timeout != null)
@@ -1381,19 +1175,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Retrieves statistics related to the share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareStatistics, ShareGetStatisticsHeaders>> GetStatisticsAsync(string shareName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareStatistics, ShareGetStatisticsHeaders>> GetStatisticsAsync(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateGetStatisticsRequest(shareName, timeout, leaseAccessConditions);
+            using var message = CreateGetStatisticsRequest(timeout, leaseAccessConditions);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareGetStatisticsHeaders(message.Response);
             switch (message.Response.Status)
@@ -1414,19 +1201,12 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Retrieves statistics related to the share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="leaseAccessConditions"> Parameter group. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareStatistics, ShareGetStatisticsHeaders> GetStatistics(string shareName, int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareStatistics, ShareGetStatisticsHeaders> GetStatistics(int? timeout = null, ShareFileRequestConditions leaseAccessConditions = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateGetStatisticsRequest(shareName, timeout, leaseAccessConditions);
+            using var message = CreateGetStatisticsRequest(timeout, leaseAccessConditions);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareGetStatisticsHeaders(message.Response);
             switch (message.Response.Status)
@@ -1446,7 +1226,7 @@ namespace Azure.Storage.Files.Shares
             }
         }
 
-        internal HttpMessage CreateRestoreRequest(string shareName, int? timeout, string deletedShareName, string deletedShareVersion)
+        internal HttpMessage CreateRestoreRequest(int? timeout, string deletedShareName, string deletedShareVersion)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1454,7 +1234,6 @@ namespace Azure.Storage.Files.Shares
             var uri = new RawRequestUriBuilder();
             uri.AppendRaw(url, false);
             uri.AppendPath("/", false);
-            uri.AppendPath(shareName, true);
             uri.AppendQuery("restype", "share", true);
             uri.AppendQuery("comp", "undelete", true);
             if (timeout != null)
@@ -1476,20 +1255,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Restores a previously deleted Share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="deletedShareName"> Specifies the name of the preivously-deleted share. </param>
         /// <param name="deletedShareVersion"> Specifies the version of the preivously-deleted share. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public async Task<ResponseWithHeaders<ShareRestoreHeaders>> RestoreAsync(string shareName, int? timeout = null, string deletedShareName = null, string deletedShareVersion = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<ShareRestoreHeaders>> RestoreAsync(int? timeout = null, string deletedShareName = null, string deletedShareVersion = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateRestoreRequest(shareName, timeout, deletedShareName, deletedShareVersion);
+            using var message = CreateRestoreRequest(timeout, deletedShareName, deletedShareVersion);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new ShareRestoreHeaders(message.Response);
             switch (message.Response.Status)
@@ -1502,20 +1274,13 @@ namespace Azure.Storage.Files.Shares
         }
 
         /// <summary> Restores a previously deleted Share. </summary>
-        /// <param name="shareName"> The share name. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/Setting-Timeouts-for-File-Service-Operations?redirectedfrom=MSDN&quot;&gt;Setting Timeouts for File Service Operations.&lt;/a&gt;. </param>
         /// <param name="deletedShareName"> Specifies the name of the preivously-deleted share. </param>
         /// <param name="deletedShareVersion"> Specifies the version of the preivously-deleted share. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="shareName"/> is null. </exception>
-        public ResponseWithHeaders<ShareRestoreHeaders> Restore(string shareName, int? timeout = null, string deletedShareName = null, string deletedShareVersion = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<ShareRestoreHeaders> Restore(int? timeout = null, string deletedShareName = null, string deletedShareVersion = null, CancellationToken cancellationToken = default)
         {
-            if (shareName == null)
-            {
-                throw new ArgumentNullException(nameof(shareName));
-            }
-
-            using var message = CreateRestoreRequest(shareName, timeout, deletedShareName, deletedShareVersion);
+            using var message = CreateRestoreRequest(timeout, deletedShareName, deletedShareVersion);
             _pipeline.Send(message, cancellationToken);
             var headers = new ShareRestoreHeaders(message.Response);
             switch (message.Response.Status)
