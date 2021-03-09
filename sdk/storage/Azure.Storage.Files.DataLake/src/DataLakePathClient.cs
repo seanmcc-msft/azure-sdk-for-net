@@ -3098,33 +3098,29 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathSetAccessControlHeaders> response;
+                    ResponseWithHeaders<PathSetPermissionHeaders> response;
 
                     if (async)
                     {
-                        response = await PathRestClient.SetAccessControlAsync(
-                            leaseId: conditions?.LeaseId,
+                        response = await BlobPathRestClient.SetPermissionAsync(
+                            // TODO
+                            setAclMode: PathSetAclMode.SetOwner,
+                            timeout: null,
+                            permissions: permissions?.ToSymbolicPermissions(),
                             owner: owner,
                             group: group,
-                            permissions: permissions?.ToSymbolicPermissions(),
-                            ifMatch: conditions?.IfMatch?.ToString(),
-                            ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: conditions?.IfModifiedSince,
-                            ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        response = PathRestClient.SetAccessControl(
-                            leaseId: conditions?.LeaseId,
+                        response = BlobPathRestClient.SetPermission(
+                            // TODO
+                            setAclMode: PathSetAclMode.SetOwner,
+                            timeout: null,
+                            permissions: permissions?.ToSymbolicPermissions(),
                             owner: owner,
                             group: group,
-                            permissions: permissions?.ToSymbolicPermissions(),
-                            ifMatch: conditions?.IfMatch?.ToString(),
-                            ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: conditions?.IfModifiedSince,
-                            ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
                             cancellationToken: cancellationToken);
                     }
 
