@@ -560,5 +560,80 @@ namespace Azure.Storage.Files.DataLake
                 ETag = response.GetRawResponse().Headers.ETag.GetValueOrDefault(),
                 LastModified = response.Headers.LastModified.GetValueOrDefault()
             };
+
+        internal static PathSegment ToPathSegment(this ResponseWithHeaders<ListBlobsHierarchySegmentResponse, FileSystemBlobListPathsHeaders> response)
+        {
+            if (response == null)
+            {
+                return null;
+            }
+
+            List<PathItem> pathItems = new List<PathItem>();
+
+            // It is possible for both BlobItems and BlobPrefixes to be populated.
+            if (response.Value.Segment.BlobItems != null)
+            {
+                pathItems.AddRange(response.Value.Segment.BlobItems.ToList().Select(r => r.ToPathItem()));
+            }
+            if (response.Value.Segment.BlobPrefixes != null)
+            {
+                pathItems.AddRange(response.Value.Segment.BlobPrefixes.ToList().Select(r => r.ToPathItem()));
+            }
+
+            return new PathSegment
+            {
+                Continuation = response.Value.Marker,
+                Paths = pathItems
+            };
+        }
+
+        internal static PathItem ToPathItem(this BlobItemInternal blobItemInternal)
+        {
+            if (blobItemInternal == null)
+            {
+                return null;
+            }
+
+            bool isDirectory = false;
+
+            if (blobItemInternal.Metadata.TryGetValue(Constants.DataLake.IsDirectoryKey, out string isDirectoryString)
+                && isDirectoryString == Constants.TrueName)
+            {
+                isDirectory = true;
+            }
+
+            return new PathItem
+            {
+                Name = blobItemInternal.Name,
+                IsDirectory = isDirectory,
+                LastModified = blobItemInternal.Properties.LastModified,
+                ETag = blobItemInternal.Properties.Etag == null ? new ETag(string.Empty) : new ETag(blobItemInternal.Properties.Etag),
+                ContentLength = blobItemInternal.Properties.ContentLength,
+                Owner = blobItemInternal.Properties.Owner,
+                Group = blobItemInternal.Properties.Group,
+                Permissions = blobItemInternal.Properties.Permissions
+            };
+        }
+
+        internal static PathItem ToPathItem(this BlobPrefix blobPrefix)
+        {
+            if (blobPrefix == null)
+            {
+                return null;
+            }
+
+            return new PathItem
+            {
+                Name = blobPrefix.Name.Substring(0, blobPrefix.Name.Length - 1),
+                // BlobPrefixes are always directories.
+                IsDirectory = true,
+                LastModified = blobPrefix.Properties.LastModified,
+                ETag = blobPrefix.Properties.Etag == null ? new ETag(string.Empty) : new ETag(blobPrefix.Properties.Etag),
+                ContentLength = blobPrefix.Properties.ContentLength,
+                Owner = blobPrefix.Properties.Owner,
+                Group = blobPrefix.Properties.Group,
+                Permissions = blobPrefix.Properties.Permissions
+            };
+        }
     }
 }

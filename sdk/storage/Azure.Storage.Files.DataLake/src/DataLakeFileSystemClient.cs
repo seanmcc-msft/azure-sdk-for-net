@@ -1520,27 +1520,43 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathList, FileSystemListPathsHeaders> response;
+                    ResponseWithHeaders<ListBlobsHierarchySegmentResponse, FileSystemBlobListPathsHeaders> response;
+                    //ResponseWithHeaders<PathList, FileSystemListPathsHeaders> response;
+
+                    List<ListPathsIncludeItem> listPathsInclude = new List<ListPathsIncludeItem>
+                    {
+                        ListPathsIncludeItem.Metadata,
+                        ListPathsIncludeItem.Permissions
+                    };
+
+                    if (path != null && path.Length >= 1 && path[path.Length - 1] != '/')
+                    {
+                        path = $"{path}/";
+                    }
 
                     if (async)
                     {
-                        response = await FileSystemRestClient.ListPathsAsync(
-                            recursive: recursive,
-                            continuation: continuation,
-                            path: path,
+                        response = await FileSystemRestClient.BlobListPathsAsync(
+                            include: listPathsInclude,
+                            prefix: path,
+                            delimiter: recursive ? null : Constants.DataLake.Delimiter,
+                            marker: continuation,
                             maxResults: maxResults,
-                            upn: userPrincipalName,
+                            includeUpn: userPrincipalName,
+                            timeout: null,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        response = FileSystemRestClient.ListPaths(
-                            recursive: recursive,
-                            continuation: continuation,
-                            path: path,
+                        response = FileSystemRestClient.BlobListPaths(
+                            include: listPathsInclude,
+                            prefix: path,
+                            delimiter: recursive ? null : Constants.DataLake.Delimiter,
+                            marker: continuation,
                             maxResults: maxResults,
-                            upn: userPrincipalName,
+                            includeUpn: userPrincipalName,
+                            timeout: null,
                             cancellationToken: cancellationToken);
                     }
 

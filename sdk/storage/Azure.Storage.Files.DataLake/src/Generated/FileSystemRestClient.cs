@@ -6,6 +6,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="resource"> The value must be &quot;filesystem&quot; for all filesystem operations. </param>
         /// <param name="version"> Specifies the version of the operation to use for this request. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="url"/>, <paramref name="fileSystem"/>, <paramref name="resource"/>, or <paramref name="version"/> is null. </exception>
-        public FileSystemRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string resource = "filesystem", string version = "2020-02-10")
+        public FileSystemRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string resource = "filesystem", string version = "2020-06-12")
         {
             if (url == null)
             {
@@ -395,6 +396,116 @@ namespace Azure.Storage.Files.DataLake
                         PathList value = default;
                         using var document = JsonDocument.Parse(message.Response.ContentStream);
                         value = PathList.DeserializePathList(document.RootElement);
+                        return ResponseWithHeaders.FromValue(value, headers, message.Response);
+                    }
+                default:
+                    throw _clientDiagnostics.CreateRequestFailedException(message.Response);
+            }
+        }
+
+        internal HttpMessage CreateBlobListPathsRequest(IEnumerable<ListPathsIncludeItem> include, string prefix, string delimiter, string marker, int? maxResults, bool? includeUpn, int? timeout)
+        {
+            var message = _pipeline.CreateMessage();
+            var request = message.Request;
+            request.Method = RequestMethod.Get;
+            var uri = new RawRequestUriBuilder();
+            uri.AppendRaw(url, false);
+            uri.AppendPath("/", false);
+            uri.AppendPath(fileSystem, true);
+            uri.AppendQuery("restype", "container", true);
+            uri.AppendQuery("comp", "list", true);
+            if (prefix != null)
+            {
+                uri.AppendQuery("prefix", prefix, true);
+            }
+            if (delimiter != null)
+            {
+                uri.AppendQuery("delimiter", delimiter, true);
+            }
+            if (marker != null)
+            {
+                uri.AppendQuery("marker", marker, true);
+            }
+            if (maxResults != null)
+            {
+                uri.AppendQuery("maxResults", maxResults.Value, true);
+            }
+            uri.AppendQueryDelimited("include", include, ",", true);
+            if (timeout != null)
+            {
+                uri.AppendQuery("timeout", timeout.Value, true);
+            }
+            request.Uri = uri;
+            if (includeUpn != null)
+            {
+                request.Headers.Add("x-ms-upn", includeUpn.Value);
+            }
+            request.Headers.Add("x-ms-version", version);
+            request.Headers.Add("Accept", "application/json");
+            return message;
+        }
+
+        /// <summary> List FileSystem paths and their properties. </summary>
+        /// <param name="include"> Include this parameter to specify one or more datasets to include in the response. </param>
+        /// <param name="prefix"> Filters results to filesystems within the specified prefix. </param>
+        /// <param name="delimiter"> When the request includes this parameter, the operation returns a BlobPrefix element in the response body that acts as a placeholder for all blobs whose names begin with the same substring up to the appearance of the delimiter character. The delimiter may be a single character or a string. </param>
+        /// <param name="marker"> A string value that identifies the portion of the list of containers to be returned with the next listing operation. The operation returns the NextMarker value within the response body if the listing operation did not return all containers remaining to be listed with the current page. The NextMarker value can be used as the value for the marker parameter in a subsequent call to request the next page of list items. The marker value is opaque to the client. </param>
+        /// <param name="maxResults"> An optional value that specifies the maximum number of items to return. If omitted or greater than 5,000, the response will include up to 5,000 items. </param>
+        /// <param name="includeUpn"> Optional. Valid only when Hierarchical Namespace is enabled for the account. If true, the user identity values returned in the owner and group fields of each list entry will be transformed from Azure Active Directory Object IDs to User Principal Names. If false, the values will be returned as Azure Active Directory Object IDs. The default value is false. Note that group and application Object IDs are not translated because they do not have unique friendly names. </param>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="include"/> is null. </exception>
+        public async Task<ResponseWithHeaders<ListBlobsHierarchySegmentResponse, FileSystemBlobListPathsHeaders>> BlobListPathsAsync(IEnumerable<ListPathsIncludeItem> include, string prefix = null, string delimiter = null, string marker = null, int? maxResults = null, bool? includeUpn = null, int? timeout = null, CancellationToken cancellationToken = default)
+        {
+            if (include == null)
+            {
+                throw new ArgumentNullException(nameof(include));
+            }
+
+            using var message = CreateBlobListPathsRequest(include, prefix, delimiter, marker, maxResults, includeUpn, timeout);
+            await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
+            var headers = new FileSystemBlobListPathsHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 200:
+                    {
+                        ListBlobsHierarchySegmentResponse value = default;
+                        using var document = await JsonDocument.ParseAsync(message.Response.ContentStream, default, cancellationToken).ConfigureAwait(false);
+                        value = ListBlobsHierarchySegmentResponse.DeserializeListBlobsHierarchySegmentResponse(document.RootElement);
+                        return ResponseWithHeaders.FromValue(value, headers, message.Response);
+                    }
+                default:
+                    throw await _clientDiagnostics.CreateRequestFailedExceptionAsync(message.Response).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary> List FileSystem paths and their properties. </summary>
+        /// <param name="include"> Include this parameter to specify one or more datasets to include in the response. </param>
+        /// <param name="prefix"> Filters results to filesystems within the specified prefix. </param>
+        /// <param name="delimiter"> When the request includes this parameter, the operation returns a BlobPrefix element in the response body that acts as a placeholder for all blobs whose names begin with the same substring up to the appearance of the delimiter character. The delimiter may be a single character or a string. </param>
+        /// <param name="marker"> A string value that identifies the portion of the list of containers to be returned with the next listing operation. The operation returns the NextMarker value within the response body if the listing operation did not return all containers remaining to be listed with the current page. The NextMarker value can be used as the value for the marker parameter in a subsequent call to request the next page of list items. The marker value is opaque to the client. </param>
+        /// <param name="maxResults"> An optional value that specifies the maximum number of items to return. If omitted or greater than 5,000, the response will include up to 5,000 items. </param>
+        /// <param name="includeUpn"> Optional. Valid only when Hierarchical Namespace is enabled for the account. If true, the user identity values returned in the owner and group fields of each list entry will be transformed from Azure Active Directory Object IDs to User Principal Names. If false, the values will be returned as Azure Active Directory Object IDs. The default value is false. Note that group and application Object IDs are not translated because they do not have unique friendly names. </param>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="include"/> is null. </exception>
+        public ResponseWithHeaders<ListBlobsHierarchySegmentResponse, FileSystemBlobListPathsHeaders> BlobListPaths(IEnumerable<ListPathsIncludeItem> include, string prefix = null, string delimiter = null, string marker = null, int? maxResults = null, bool? includeUpn = null, int? timeout = null, CancellationToken cancellationToken = default)
+        {
+            if (include == null)
+            {
+                throw new ArgumentNullException(nameof(include));
+            }
+
+            using var message = CreateBlobListPathsRequest(include, prefix, delimiter, marker, maxResults, includeUpn, timeout);
+            _pipeline.Send(message, cancellationToken);
+            var headers = new FileSystemBlobListPathsHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 200:
+                    {
+                        ListBlobsHierarchySegmentResponse value = default;
+                        using var document = JsonDocument.Parse(message.Response.ContentStream);
+                        value = ListBlobsHierarchySegmentResponse.DeserializeListBlobsHierarchySegmentResponse(document.RootElement);
                         return ResponseWithHeaders.FromValue(value, headers, message.Response);
                     }
                 default:
