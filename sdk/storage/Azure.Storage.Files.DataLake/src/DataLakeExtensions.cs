@@ -560,5 +560,21 @@ namespace Azure.Storage.Files.DataLake
                 ETag = response.GetRawResponse().Headers.ETag.GetValueOrDefault(),
                 LastModified = response.Headers.LastModified.GetValueOrDefault()
             };
+
+        internal static PathAccessControl ToPathAccessControl(this ResponseWithHeaders<PathGetAccessControlHeaders> response)
+        {
+            if (response == null)
+            {
+                return null;
+            }
+
+            return new PathAccessControl
+            {
+                Owner = response.Headers.Owner,
+                Group = response.Headers.Group,
+                Permissions = PathPermissions.ParseSymbolicPermissions(response.Headers.Permissions),
+                AccessControlList = PathAccessControlExtensions.ParseAccessControlList(response.Headers.ACL)
+            };
+        }
     }
 }

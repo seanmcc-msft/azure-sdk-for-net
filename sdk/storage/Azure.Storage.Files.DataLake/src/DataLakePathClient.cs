@@ -2123,31 +2123,23 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathGetPropertiesHeaders> response;
+                    ResponseWithHeaders<PathGetAccessControlHeaders> response;
 
                     if (async)
                     {
-                        response = await PathRestClient.GetPropertiesAsync(
-                            action: PathGetPropertiesAction.GetAccessControl,
-                             upn: userPrincipalName,
-                             leaseId: conditions?.LeaseId,
-                            ifMatch: conditions?.IfMatch?.ToString(),
-                            ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: conditions?.IfModifiedSince,
-                            ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
+                        // TODO what about access conditions?
+                        response = await BlobPathRestClient.GetAccessControlAsync(
+                            timeout: null,
+                            upn: userPrincipalName,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        response = PathRestClient.GetProperties(
-                            action: PathGetPropertiesAction.GetAccessControl,
-                             upn: userPrincipalName,
-                             leaseId: conditions?.LeaseId,
-                            ifMatch: conditions?.IfMatch?.ToString(),
-                            ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: conditions?.IfModifiedSince,
-                            ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
+                        // TODO what about access conditions?
+                        response = BlobPathRestClient.GetAccessControl(
+                            timeout: null,
+                            upn: userPrincipalName,
                             cancellationToken: cancellationToken);
                     }
 

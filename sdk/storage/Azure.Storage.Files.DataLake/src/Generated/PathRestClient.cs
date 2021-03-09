@@ -33,7 +33,7 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="path"> The file or directory path. </param>
         /// <param name="version"> Specifies the version of the operation to use for this request. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="url"/>, <paramref name="fileSystem"/>, <paramref name="path"/>, or <paramref name="version"/> is null. </exception>
-        public PathRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string path, string version = "2020-02-10")
+        public PathRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string path, string version = "2020-06-12")
         {
             if (url == null)
             {
@@ -364,7 +364,7 @@ namespace Azure.Storage.Files.DataLake
             return message;
         }
 
-        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
+        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. Concurrent writes to the same file using multiple clients are not supported. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
         /// <param name="action"> The action must be &quot;append&quot; to upload data to be appended to a file, &quot;flush&quot; to flush previously uploaded data to a file, &quot;setProperties&quot; to set the properties of a file or directory, &quot;setAccessControl&quot; to set the owner, group, permissions, or access control list for a file or directory, or  &quot;setAccessControlRecursive&quot; to set the access control list for a directory recursively. Note that Hierarchical Namespace must be enabled for the account in order to use access control.  Also note that the Access Control List (ACL) includes permissions for the owner, owning group, and others, so the x-ms-permissions and x-ms-acl request headers are mutually exclusive. </param>
         /// <param name="mode"> Mode &quot;set&quot; sets POSIX access control rights on files and directories, &quot;modify&quot; modifies one or more POSIX access control rights  that pre-exist on files and directories, &quot;remove&quot; removes one or more POSIX access control rights  that were present earlier on files and directories. </param>
         /// <param name="body"> Initial data. </param>
@@ -420,7 +420,7 @@ namespace Azure.Storage.Files.DataLake
             }
         }
 
-        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
+        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. Concurrent writes to the same file using multiple clients are not supported. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
         /// <param name="action"> The action must be &quot;append&quot; to upload data to be appended to a file, &quot;flush&quot; to flush previously uploaded data to a file, &quot;setProperties&quot; to set the properties of a file or directory, &quot;setAccessControl&quot; to set the owner, group, permissions, or access control list for a file or directory, or  &quot;setAccessControlRecursive&quot; to set the access control list for a directory recursively. Note that Hierarchical Namespace must be enabled for the account in order to use access control.  Also note that the Access Control List (ACL) includes permissions for the owner, owning group, and others, so the x-ms-permissions and x-ms-acl request headers are mutually exclusive. </param>
         /// <param name="mode"> Mode &quot;set&quot; sets POSIX access control rights on files and directories, &quot;modify&quot; modifies one or more POSIX access control rights  that pre-exist on files and directories, &quot;remove&quot; removes one or more POSIX access control rights  that were present earlier on files and directories. </param>
         /// <param name="body"> Initial data. </param>
@@ -1389,6 +1389,68 @@ namespace Azure.Storage.Files.DataLake
             using var message = CreateSetExpiryRequest(expiryOptions, timeout, expiresOn);
             _pipeline.Send(message, cancellationToken);
             var headers = new PathSetExpiryHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 200:
+                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                default:
+                    throw _clientDiagnostics.CreateRequestFailedException(message.Response);
+            }
+        }
+
+        internal HttpMessage CreateGetAccessControlRequest(int? timeout, bool? upn)
+        {
+            var message = _pipeline.CreateMessage();
+            var request = message.Request;
+            request.Method = RequestMethod.Head;
+            var uri = new RawRequestUriBuilder();
+            uri.AppendRaw(url, false);
+            uri.AppendPath("/", false);
+            uri.AppendPath(fileSystem, true);
+            uri.AppendPath("/", false);
+            uri.AppendPath(path, false);
+            uri.AppendQuery("comp", "acl", true);
+            if (timeout != null)
+            {
+                uri.AppendQuery("timeout", timeout.Value, true);
+            }
+            if (upn != null)
+            {
+                uri.AppendQuery("upn", upn.Value, true);
+            }
+            request.Uri = uri;
+            request.Headers.Add("x-ms-version", version);
+            request.Headers.Add("Accept", "application/json");
+            return message;
+        }
+
+        /// <summary> Gets the access control for the path. </summary>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="upn"> Optional. Valid only when Hierarchical Namespace is enabled for the account. If &quot;true&quot;, the user identity values returned in the x-ms-owner, x-ms-group, and x-ms-acl response headers will be transformed from Azure Active Directory Object IDs to User Principal Names.  If &quot;false&quot;, the values will be returned as Azure Active Directory Object IDs. The default value is false. Note that group and application Object IDs are not translated because they do not have unique friendly names. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        public async Task<ResponseWithHeaders<PathGetAccessControlHeaders>> GetAccessControlAsync(int? timeout = null, bool? upn = null, CancellationToken cancellationToken = default)
+        {
+            using var message = CreateGetAccessControlRequest(timeout, upn);
+            await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
+            var headers = new PathGetAccessControlHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 200:
+                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                default:
+                    throw await _clientDiagnostics.CreateRequestFailedExceptionAsync(message.Response).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary> Gets the access control for the path. </summary>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="upn"> Optional. Valid only when Hierarchical Namespace is enabled for the account. If &quot;true&quot;, the user identity values returned in the x-ms-owner, x-ms-group, and x-ms-acl response headers will be transformed from Azure Active Directory Object IDs to User Principal Names.  If &quot;false&quot;, the values will be returned as Azure Active Directory Object IDs. The default value is false. Note that group and application Object IDs are not translated because they do not have unique friendly names. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        public ResponseWithHeaders<PathGetAccessControlHeaders> GetAccessControl(int? timeout = null, bool? upn = null, CancellationToken cancellationToken = default)
+        {
+            using var message = CreateGetAccessControlRequest(timeout, upn);
+            _pipeline.Send(message, cancellationToken);
+            var headers = new PathGetAccessControlHeaders(message.Response);
             switch (message.Response.Status)
             {
                 case 200:
