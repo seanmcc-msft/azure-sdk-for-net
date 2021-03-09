@@ -1890,41 +1890,45 @@ namespace Azure.Storage.Files.DataLake
                     // Build destPathClient
                     DataLakePathClient destPathClient = new DataLakePathClient(destUriBuilder.ToUri(), ClientConfiguration);
 
-                    ResponseWithHeaders<PathCreateHeaders> response;
+                    ResponseWithHeaders<PathRenameHeaders> response;
 
                     if (async)
                     {
-                        response = await destPathClient.PathRestClient.CreateAsync(
-                            mode: PathRenameMode.Legacy,
-                            renameSource: renameSource,
-                            leaseId: destinationConditions?.LeaseId,
-                            sourceLeaseId: sourceConditions?.LeaseId,
-                            ifMatch: destinationConditions?.IfMatch?.ToString(),
-                            ifNoneMatch: destinationConditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: destinationConditions?.IfModifiedSince,
-                            ifUnmodifiedSince: destinationConditions?.IfUnmodifiedSince,
-                            sourceIfMatch: sourceConditions?.IfMatch?.ToString(),
-                            sourceIfNoneMatch: sourceConditions?.IfNoneMatch?.ToString(),
-                            sourceIfModifiedSince: sourceConditions?.IfModifiedSince,
-                            sourceIfUnmodifiedSince: sourceConditions?.IfUnmodifiedSince,
+                        // TODO PathRenameMode
+                        response = await BlobPathRestClient.RenameAsync(
+                            // TODO this might be wrong
+                            renameDestination: destUriBuilder.ToBlobUri().ToString(),
+                            timeout: null,
+                            leaseId: sourceConditions?.LeaseId,
+                            ifMatch: sourceConditions?.IfMatch?.ToString(),
+                            ifModifiedSince: sourceConditions?.IfModifiedSince,
+                            ifNoneMatch: sourceConditions?.IfNoneMatch?.ToString(),
+                            ifUnmodifiedSince: sourceConditions?.IfUnmodifiedSince,
+                            destinationIfMatch: destinationConditions?.IfMatch?.ToString(),
+                            destinationIfModifiedSince: destinationConditions?.IfModifiedSince,
+                            destinationIfNoneMatch: destinationConditions?.IfNoneMatch?.ToString(),
+                            destinationIfUnmodifiedSince: destinationConditions?.IfUnmodifiedSince,
+                            destinationLeaseId: destinationConditions?.LeaseId,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        response = destPathClient.PathRestClient.Create(
-                            mode: PathRenameMode.Legacy,
-                            renameSource: renameSource,
-                            leaseId: destinationConditions?.LeaseId,
-                            sourceLeaseId: sourceConditions?.LeaseId,
-                            ifMatch: destinationConditions?.IfMatch?.ToString(),
-                            ifNoneMatch: destinationConditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: destinationConditions?.IfModifiedSince,
-                            ifUnmodifiedSince: destinationConditions?.IfUnmodifiedSince,
-                            sourceIfMatch: sourceConditions?.IfMatch?.ToString(),
-                            sourceIfNoneMatch: sourceConditions?.IfNoneMatch?.ToString(),
-                            sourceIfModifiedSince: sourceConditions?.IfModifiedSince,
-                            sourceIfUnmodifiedSince: sourceConditions?.IfUnmodifiedSince,
+                        // TODO PathRenameMode
+                        response = BlobPathRestClient.Rename(
+                            // TODO this might be wrong
+                            renameDestination: destUriBuilder.ToBlobUri().ToString(),
+                            timeout: null,
+                            leaseId: sourceConditions?.LeaseId,
+                            ifMatch: sourceConditions?.IfMatch?.ToString(),
+                            ifModifiedSince: sourceConditions?.IfModifiedSince,
+                            ifNoneMatch: sourceConditions?.IfNoneMatch?.ToString(),
+                            ifUnmodifiedSince: sourceConditions?.IfUnmodifiedSince,
+                            destinationIfMatch: destinationConditions?.IfMatch?.ToString(),
+                            destinationIfModifiedSince: destinationConditions?.IfModifiedSince,
+                            destinationIfNoneMatch: destinationConditions?.IfNoneMatch?.ToString(),
+                            destinationIfUnmodifiedSince: destinationConditions?.IfUnmodifiedSince,
+                            destinationLeaseId: destinationConditions?.LeaseId,
                             cancellationToken: cancellationToken);
                     }
 

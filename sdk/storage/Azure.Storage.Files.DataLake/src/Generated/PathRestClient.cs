@@ -33,7 +33,7 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="path"> The file or directory path. </param>
         /// <param name="version"> Specifies the version of the operation to use for this request. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="url"/>, <paramref name="fileSystem"/>, <paramref name="path"/>, or <paramref name="version"/> is null. </exception>
-        public PathRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string path, string version = "2020-02-10")
+        public PathRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string path, string version = "2020-06-12")
         {
             if (url == null)
             {
@@ -364,7 +364,7 @@ namespace Azure.Storage.Files.DataLake
             return message;
         }
 
-        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
+        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. Concurrent writes to the same file using multiple clients are not supported. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
         /// <param name="action"> The action must be &quot;append&quot; to upload data to be appended to a file, &quot;flush&quot; to flush previously uploaded data to a file, &quot;setProperties&quot; to set the properties of a file or directory, &quot;setAccessControl&quot; to set the owner, group, permissions, or access control list for a file or directory, or  &quot;setAccessControlRecursive&quot; to set the access control list for a directory recursively. Note that Hierarchical Namespace must be enabled for the account in order to use access control.  Also note that the Access Control List (ACL) includes permissions for the owner, owning group, and others, so the x-ms-permissions and x-ms-acl request headers are mutually exclusive. </param>
         /// <param name="mode"> Mode &quot;set&quot; sets POSIX access control rights on files and directories, &quot;modify&quot; modifies one or more POSIX access control rights  that pre-exist on files and directories, &quot;remove&quot; removes one or more POSIX access control rights  that were present earlier on files and directories. </param>
         /// <param name="body"> Initial data. </param>
@@ -420,7 +420,7 @@ namespace Azure.Storage.Files.DataLake
             }
         }
 
-        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
+        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. Concurrent writes to the same file using multiple clients are not supported. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
         /// <param name="action"> The action must be &quot;append&quot; to upload data to be appended to a file, &quot;flush&quot; to flush previously uploaded data to a file, &quot;setProperties&quot; to set the properties of a file or directory, &quot;setAccessControl&quot; to set the owner, group, permissions, or access control list for a file or directory, or  &quot;setAccessControlRecursive&quot; to set the access control list for a directory recursively. Note that Hierarchical Namespace must be enabled for the account in order to use access control.  Also note that the Access Control List (ACL) includes permissions for the owner, owning group, and others, so the x-ms-permissions and x-ms-acl request headers are mutually exclusive. </param>
         /// <param name="mode"> Mode &quot;set&quot; sets POSIX access control rights on files and directories, &quot;modify&quot; modifies one or more POSIX access control rights  that pre-exist on files and directories, &quot;remove&quot; removes one or more POSIX access control rights  that were present earlier on files and directories. </param>
         /// <param name="body"> Initial data. </param>
@@ -880,6 +880,137 @@ namespace Azure.Storage.Files.DataLake
             switch (message.Response.Status)
             {
                 case 200:
+                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                default:
+                    throw _clientDiagnostics.CreateRequestFailedException(message.Response);
+            }
+        }
+
+        internal HttpMessage CreateRenameRequest(string renameDestination, int? timeout, string leaseId, string ifMatch, DateTimeOffset? ifModifiedSince, string ifNoneMatch, DateTimeOffset? ifUnmodifiedSince, string destinationIfMatch, DateTimeOffset? destinationIfModifiedSince, string destinationIfNoneMatch, DateTimeOffset? destinationIfUnmodifiedSince, string destinationLeaseId)
+        {
+            var message = _pipeline.CreateMessage();
+            var request = message.Request;
+            request.Method = RequestMethod.Post;
+            var uri = new RawRequestUriBuilder();
+            uri.AppendRaw(url, false);
+            uri.AppendPath("/", false);
+            uri.AppendPath(fileSystem, true);
+            uri.AppendPath("/", false);
+            uri.AppendPath(path, false);
+            uri.AppendQuery("comp", "rename", true);
+            if (timeout != null)
+            {
+                uri.AppendQuery("timeout", timeout.Value, true);
+            }
+            request.Uri = uri;
+            request.Headers.Add("x-ms-version", version);
+            if (leaseId != null)
+            {
+                request.Headers.Add("x-ms-lease-id", leaseId);
+            }
+            if (ifMatch != null)
+            {
+                request.Headers.Add("If-Match", ifMatch);
+            }
+            if (ifModifiedSince != null)
+            {
+                request.Headers.Add("If-Modified-Since", ifModifiedSince.Value, "R");
+            }
+            if (ifNoneMatch != null)
+            {
+                request.Headers.Add("If-None-Match", ifNoneMatch);
+            }
+            if (ifUnmodifiedSince != null)
+            {
+                request.Headers.Add("If-Unmodified-Since", ifUnmodifiedSince.Value, "R");
+            }
+            request.Headers.Add("x-ms-rename-destination", renameDestination);
+            if (destinationIfMatch != null)
+            {
+                request.Headers.Add("x-ms-destination-if-match", destinationIfMatch);
+            }
+            if (destinationIfModifiedSince != null)
+            {
+                request.Headers.Add("x-ms-destination-if-modified-since", destinationIfModifiedSince.Value, "R");
+            }
+            if (destinationIfNoneMatch != null)
+            {
+                request.Headers.Add("x-ms-destination-if-none-match", destinationIfNoneMatch);
+            }
+            if (destinationIfUnmodifiedSince != null)
+            {
+                request.Headers.Add("x-ms-destination-if-unmodified-since", destinationIfUnmodifiedSince.Value, "R");
+            }
+            if (destinationLeaseId != null)
+            {
+                request.Headers.Add("x-ms-destination-lease-id", destinationLeaseId);
+            }
+            request.Headers.Add("Accept", "application/json");
+            return message;
+        }
+
+        /// <summary> Renames the path. </summary>
+        /// <param name="renameDestination"> The destination path. </param>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="leaseId"> If specified, the operation only succeeds if the resource&apos;s lease is active and matches this ID. </param>
+        /// <param name="ifMatch"> Specify an ETag value to operate only on blobs with a matching value. </param>
+        /// <param name="ifModifiedSince"> Specify this header value to operate only on a blob if it has been modified since the specified date/time. </param>
+        /// <param name="ifNoneMatch"> Specify an ETag value to operate only on blobs without a matching value. </param>
+        /// <param name="ifUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
+        /// <param name="destinationIfMatch"> Specify an ETag value to operate only on blobs with a matching value. </param>
+        /// <param name="destinationIfModifiedSince"> Specify this header value to operate only on a blob if it has been modified since the specified date/time. </param>
+        /// <param name="destinationIfNoneMatch"> Specify an ETag value to operate only on blobs without a matching value. </param>
+        /// <param name="destinationIfUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
+        /// <param name="destinationLeaseId"> A lease ID for the source path. If specified, the source path must have an active lease and the lease ID must match. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="renameDestination"/> is null. </exception>
+        public async Task<ResponseWithHeaders<PathRenameHeaders>> RenameAsync(string renameDestination, int? timeout = null, string leaseId = null, string ifMatch = null, DateTimeOffset? ifModifiedSince = null, string ifNoneMatch = null, DateTimeOffset? ifUnmodifiedSince = null, string destinationIfMatch = null, DateTimeOffset? destinationIfModifiedSince = null, string destinationIfNoneMatch = null, DateTimeOffset? destinationIfUnmodifiedSince = null, string destinationLeaseId = null, CancellationToken cancellationToken = default)
+        {
+            if (renameDestination == null)
+            {
+                throw new ArgumentNullException(nameof(renameDestination));
+            }
+
+            using var message = CreateRenameRequest(renameDestination, timeout, leaseId, ifMatch, ifModifiedSince, ifNoneMatch, ifUnmodifiedSince, destinationIfMatch, destinationIfModifiedSince, destinationIfNoneMatch, destinationIfUnmodifiedSince, destinationLeaseId);
+            await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
+            var headers = new PathRenameHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 201:
+                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                default:
+                    throw await _clientDiagnostics.CreateRequestFailedExceptionAsync(message.Response).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary> Renames the path. </summary>
+        /// <param name="renameDestination"> The destination path. </param>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="leaseId"> If specified, the operation only succeeds if the resource&apos;s lease is active and matches this ID. </param>
+        /// <param name="ifMatch"> Specify an ETag value to operate only on blobs with a matching value. </param>
+        /// <param name="ifModifiedSince"> Specify this header value to operate only on a blob if it has been modified since the specified date/time. </param>
+        /// <param name="ifNoneMatch"> Specify an ETag value to operate only on blobs without a matching value. </param>
+        /// <param name="ifUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
+        /// <param name="destinationIfMatch"> Specify an ETag value to operate only on blobs with a matching value. </param>
+        /// <param name="destinationIfModifiedSince"> Specify this header value to operate only on a blob if it has been modified since the specified date/time. </param>
+        /// <param name="destinationIfNoneMatch"> Specify an ETag value to operate only on blobs without a matching value. </param>
+        /// <param name="destinationIfUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
+        /// <param name="destinationLeaseId"> A lease ID for the source path. If specified, the source path must have an active lease and the lease ID must match. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="renameDestination"/> is null. </exception>
+        public ResponseWithHeaders<PathRenameHeaders> Rename(string renameDestination, int? timeout = null, string leaseId = null, string ifMatch = null, DateTimeOffset? ifModifiedSince = null, string ifNoneMatch = null, DateTimeOffset? ifUnmodifiedSince = null, string destinationIfMatch = null, DateTimeOffset? destinationIfModifiedSince = null, string destinationIfNoneMatch = null, DateTimeOffset? destinationIfUnmodifiedSince = null, string destinationLeaseId = null, CancellationToken cancellationToken = default)
+        {
+            if (renameDestination == null)
+            {
+                throw new ArgumentNullException(nameof(renameDestination));
+            }
+
+            using var message = CreateRenameRequest(renameDestination, timeout, leaseId, ifMatch, ifModifiedSince, ifNoneMatch, ifUnmodifiedSince, destinationIfMatch, destinationIfModifiedSince, destinationIfNoneMatch, destinationIfUnmodifiedSince, destinationLeaseId);
+            _pipeline.Send(message, cancellationToken);
+            var headers = new PathRenameHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 201:
                     return ResponseWithHeaders.FromValue(headers, message.Response);
                 default:
                     throw _clientDiagnostics.CreateRequestFailedException(message.Response);
