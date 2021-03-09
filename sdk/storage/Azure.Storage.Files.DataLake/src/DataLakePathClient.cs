@@ -2107,7 +2107,9 @@ namespace Azure.Storage.Files.DataLake
         /// </remarks>
         private async Task<Response<PathAccessControl>> GetAccessControlInternal(
             bool? userPrincipalName,
+#pragma warning disable CA1801 // Review unused parameters
             DataLakeRequestConditions conditions,
+#pragma warning restore CA1801 // Review unused parameters
             bool async,
             CancellationToken cancellationToken)
         {
