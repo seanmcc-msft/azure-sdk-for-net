@@ -2363,33 +2363,31 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathSetAccessControlHeaders> response;
+                    ResponseWithHeaders<PathSetPermissionHeaders> response;
 
                     if (async)
                     {
-                        response = await PathRestClient.SetAccessControlAsync(
-                            leaseId: conditions?.LeaseId,
+                        response = await BlobPathRestClient.SetPermissionAsync(
+                            // TODO
+                            setAclMode: PathSetAclMode.SetAcl,
+                            timeout: null,
+                            permissions: null,
                             owner: owner,
                             group: group,
                             acl: PathAccessControlExtensions.ToAccessControlListString(accessControlList),
-                            ifMatch: conditions?.IfMatch?.ToString(),
-                            ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: conditions?.IfModifiedSince,
-                            ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        response = PathRestClient.SetAccessControl(
-                            leaseId: conditions?.LeaseId,
+                        response = BlobPathRestClient.SetPermission(
+                            // TODO
+                            setAclMode: PathSetAclMode.SetAcl,
+                            timeout: null,
+                            permissions: null,
                             owner: owner,
                             group: group,
                             acl: PathAccessControlExtensions.ToAccessControlListString(accessControlList),
-                            ifMatch: conditions?.IfMatch?.ToString(),
-                            ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
-                            ifModifiedSince: conditions?.IfModifiedSince,
-                            ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
                             cancellationToken: cancellationToken);
                     }
 
@@ -3104,7 +3102,7 @@ namespace Azure.Storage.Files.DataLake
                     {
                         response = await BlobPathRestClient.SetPermissionAsync(
                             // TODO
-                            setAclMode: PathSetAclMode.SetOwner,
+                            setAclMode: PathSetAclMode.SetOwnerPermission,
                             timeout: null,
                             permissions: permissions?.ToSymbolicPermissions(),
                             owner: owner,
@@ -3116,7 +3114,7 @@ namespace Azure.Storage.Files.DataLake
                     {
                         response = BlobPathRestClient.SetPermission(
                             // TODO
-                            setAclMode: PathSetAclMode.SetOwner,
+                            setAclMode: PathSetAclMode.SetOwnerPermission,
                             timeout: null,
                             permissions: permissions?.ToSymbolicPermissions(),
                             owner: owner,

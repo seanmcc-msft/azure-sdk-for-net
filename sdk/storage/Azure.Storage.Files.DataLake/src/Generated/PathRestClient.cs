@@ -1398,7 +1398,7 @@ namespace Azure.Storage.Files.DataLake
             }
         }
 
-        internal HttpMessage CreateSetPermissionRequest(PathSetAclMode setAclMode, int? timeout, string permissions, string owner, string group)
+        internal HttpMessage CreateSetPermissionRequest(PathSetAclMode setAclMode, int? timeout, string permissions, string owner, string group, string acl)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1429,6 +1429,10 @@ namespace Azure.Storage.Files.DataLake
                 request.Headers.Add("x-ms-group", group);
             }
             request.Headers.Add("x-ms-acl-mode", setAclMode.ToSerialString());
+            if (acl != null)
+            {
+                request.Headers.Add("x-ms-acl", acl);
+            }
             request.Headers.Add("Accept", "application/json");
             return message;
         }
@@ -1439,10 +1443,11 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="permissions"> Optional and only valid if Hierarchical Namespace is enabled for the account. Sets POSIX access permissions for the file owner, the file owning group, and others. Each class may be granted read, write, or execute permission.  The sticky bit is also supported.  Both symbolic (rwxrw-rw-) and 4-digit octal notation (e.g. 0766) are supported. </param>
         /// <param name="owner"> Optional. The owner of the blob or directory. </param>
         /// <param name="group"> Optional. The owning group of the blob or directory. </param>
+        /// <param name="acl"> Sets POSIX access control rights on files and directories. The value is a comma-separated list of access control entries. Each access control entry (ACE) consists of a scope, a type, a user or group identifier, and permissions in the format &quot;[scope:][type]:[id]:[permissions]&quot;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public async Task<ResponseWithHeaders<PathSetPermissionHeaders>> SetPermissionAsync(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<PathSetPermissionHeaders>> SetPermissionAsync(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group);
+            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new PathSetPermissionHeaders(message.Response);
             switch (message.Response.Status)
@@ -1460,10 +1465,11 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="permissions"> Optional and only valid if Hierarchical Namespace is enabled for the account. Sets POSIX access permissions for the file owner, the file owning group, and others. Each class may be granted read, write, or execute permission.  The sticky bit is also supported.  Both symbolic (rwxrw-rw-) and 4-digit octal notation (e.g. 0766) are supported. </param>
         /// <param name="owner"> Optional. The owner of the blob or directory. </param>
         /// <param name="group"> Optional. The owning group of the blob or directory. </param>
+        /// <param name="acl"> Sets POSIX access control rights on files and directories. The value is a comma-separated list of access control entries. Each access control entry (ACE) consists of a scope, a type, a user or group identifier, and permissions in the format &quot;[scope:][type]:[id]:[permissions]&quot;. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public ResponseWithHeaders<PathSetPermissionHeaders> SetPermission(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<PathSetPermissionHeaders> SetPermission(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group);
+            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl);
             _pipeline.Send(message, cancellationToken);
             var headers = new PathSetPermissionHeaders(message.Response);
             switch (message.Response.Status)

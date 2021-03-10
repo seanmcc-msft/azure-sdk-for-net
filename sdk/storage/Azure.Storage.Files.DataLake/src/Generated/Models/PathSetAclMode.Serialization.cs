@@ -13,15 +13,21 @@ namespace Azure.Storage.Files.DataLake.Models
     {
         public static string ToSerialString(this PathSetAclMode value) => value switch
         {
-            PathSetAclMode.SetOwner => "SetOwner",
-            PathSetAclMode.SetPermissions => "SetPermissions",
+            PathSetAclMode.SetAcl => "Set-Acl",
+            PathSetAclMode.RemoveAclEntries => "Remove-Acl-Entries",
+            PathSetAclMode.ModifyAcl => "Modify-Acl",
+            PathSetAclMode.RemoveAcl => "Remove-Acl",
+            PathSetAclMode.SetOwnerPermission => "Set-Owner-Permission",
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown PathSetAclMode value.")
         };
 
         public static PathSetAclMode ToPathSetAclMode(this string value)
         {
-            if (string.Equals(value, "SetOwner", StringComparison.InvariantCultureIgnoreCase)) return PathSetAclMode.SetOwner;
-            if (string.Equals(value, "SetPermissions", StringComparison.InvariantCultureIgnoreCase)) return PathSetAclMode.SetPermissions;
+            if (string.Equals(value, "Set-Acl", StringComparison.InvariantCultureIgnoreCase)) return PathSetAclMode.SetAcl;
+            if (string.Equals(value, "Remove-Acl-Entries", StringComparison.InvariantCultureIgnoreCase)) return PathSetAclMode.RemoveAclEntries;
+            if (string.Equals(value, "Modify-Acl", StringComparison.InvariantCultureIgnoreCase)) return PathSetAclMode.ModifyAcl;
+            if (string.Equals(value, "Remove-Acl", StringComparison.InvariantCultureIgnoreCase)) return PathSetAclMode.RemoveAcl;
+            if (string.Equals(value, "Set-Owner-Permission", StringComparison.InvariantCultureIgnoreCase)) return PathSetAclMode.SetOwnerPermission;
             throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown PathSetAclMode value.");
         }
     }
