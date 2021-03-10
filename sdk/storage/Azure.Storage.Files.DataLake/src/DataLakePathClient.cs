@@ -2363,7 +2363,7 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathSetPermissionHeaders> response;
+                    ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders> response;
 
                     if (async)
                     {
@@ -2760,7 +2760,7 @@ namespace Azure.Storage.Files.DataLake
                         $"batchSize: {options.BatchSize}");
                     try
                     {
-                        ResponseWithHeaders<SetAccessControlRecursiveResponse, PathSetAccessControlRecursiveHeaders> response;
+                        ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders> response;
                         string lastContinuationToken = null;
 
                         int directoriesSuccessfulCount = 0;
@@ -2769,29 +2769,47 @@ namespace Azure.Storage.Files.DataLake
                         int batchesCount = 0;
                         AccessControlChangeFailure[] batchFailures = default;
 
+                        PathSetAclMode setAclMode = mode switch
+                        {
+                            PathSetAccessControlRecursiveMode.Set => PathSetAclMode.SetAcl,
+                            PathSetAccessControlRecursiveMode.Modify => PathSetAclMode.ModifyAcl,
+                            PathSetAccessControlRecursiveMode.Remove => PathSetAclMode.RemoveAclEntries,
+                            _ => throw new ArgumentException($"Unknown PathSetAccessControlRecursiveMode type: {mode}"),
+                        };
+
                         do
                         {
                             try
                             {
                                 if (async)
                                 {
-                                    response = await PathRestClient.SetAccessControlRecursiveAsync(
-                                        mode: mode,
-                                        continuation: continuationToken,
-                                        forceFlag: options?.ContinueOnFailure,
-                                        maxRecords: options?.BatchSize,
+                                    // TODO what about BatchSize?
+                                    response = await BlobPathRestClient.SetPermissionAsync(
+                                        setAclMode: setAclMode,
+                                        timeout: null,
+                                        permissions: null,
+                                        owner: null,
+                                        group: null,
                                         acl: accessControlList,
+                                        recursive: true,
+                                        forceFlag: options?.ContinueOnFailure,
+                                        marker: continuationToken,
                                         cancellationToken: cancellationToken)
                                         .ConfigureAwait(false);
                                 }
                                 else
                                 {
-                                    response = PathRestClient.SetAccessControlRecursive(
-                                        mode: mode,
-                                        continuation: continuationToken,
-                                        forceFlag: options?.ContinueOnFailure,
-                                        maxRecords: options?.BatchSize,
+                                    // TODO what about BatchSize?
+                                    response = BlobPathRestClient.SetPermission(
+                                        setAclMode: setAclMode,
+                                        timeout: null,
+                                        permissions: null,
+                                        owner: null,
+                                        group: null,
                                         acl: accessControlList,
+                                        recursive: true,
+                                        forceFlag: options?.ContinueOnFailure,
+                                        marker: continuationToken,
                                         cancellationToken: cancellationToken);
                                 }
                             }
@@ -2803,7 +2821,7 @@ namespace Azure.Storage.Files.DataLake
                             {
                                 throw DataLakeErrors.ChangeAclFailed(exception, continuationToken);
                             }
-                            continuationToken = response.Headers.Continuation;
+                            continuationToken = string.IsNullOrEmpty(response.Value.NextMarker) ? null : response.Value.NextMarker;
 
                             if (!string.IsNullOrEmpty(continuationToken))
                             {
@@ -2824,7 +2842,7 @@ namespace Azure.Storage.Files.DataLake
                                 .Select(failedEntry => new AccessControlChangeFailure()
                                 {
                                     Name = failedEntry.Name,
-                                    IsDirectory = failedEntry.Type.Equals("DIRECTORY", StringComparison.InvariantCultureIgnoreCase),
+                                    IsDirectory = failedEntry.Type.Equals("Directory", StringComparison.InvariantCultureIgnoreCase),
                                     ErrorMessage = failedEntry.ErrorMessage,
                                 }).ToArray();
                             }
@@ -2834,7 +2852,7 @@ namespace Azure.Storage.Files.DataLake
                                     .Select(failedEntry => new AccessControlChangeFailure()
                                     {
                                         Name = failedEntry.Name,
-                                        IsDirectory = failedEntry.Type.Equals("DIRECTORY", StringComparison.InvariantCultureIgnoreCase),
+                                        IsDirectory = failedEntry.Type.Equals("Directory", StringComparison.InvariantCultureIgnoreCase),
                                         ErrorMessage = failedEntry.ErrorMessage,
                                     }).ToList();
 
@@ -3096,7 +3114,7 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathSetPermissionHeaders> response;
+                    ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders> response;
 
                     if (async)
                     {

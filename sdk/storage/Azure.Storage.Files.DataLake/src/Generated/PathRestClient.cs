@@ -10,6 +10,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Storage.Files.DataLake.Models;
@@ -1398,7 +1399,7 @@ namespace Azure.Storage.Files.DataLake
             }
         }
 
-        internal HttpMessage CreateSetPermissionRequest(PathSetAclMode setAclMode, int? timeout, string permissions, string owner, string group, string acl)
+        internal HttpMessage CreateSetPermissionRequest(PathSetAclMode setAclMode, int? timeout, string permissions, string owner, string group, string acl, bool? recursive, bool? forceFlag, string marker)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1413,6 +1414,18 @@ namespace Azure.Storage.Files.DataLake
             if (timeout != null)
             {
                 uri.AppendQuery("timeout", timeout.Value, true);
+            }
+            if (recursive != null)
+            {
+                uri.AppendQuery("recursive", recursive.Value, true);
+            }
+            if (forceFlag != null)
+            {
+                uri.AppendQuery("forceFlag", forceFlag.Value, true);
+            }
+            if (marker != null)
+            {
+                uri.AppendQuery("marker", marker, true);
             }
             request.Uri = uri;
             request.Headers.Add("x-ms-version", version);
@@ -1433,7 +1446,7 @@ namespace Azure.Storage.Files.DataLake
             {
                 request.Headers.Add("x-ms-acl", acl);
             }
-            request.Headers.Add("Accept", "application/json");
+            request.Headers.Add("Accept", "application/xml");
             return message;
         }
 
@@ -1444,16 +1457,27 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="owner"> Optional. The owner of the blob or directory. </param>
         /// <param name="group"> Optional. The owning group of the blob or directory. </param>
         /// <param name="acl"> Sets POSIX access control rights on files and directories. The value is a comma-separated list of access control entries. Each access control entry (ACE) consists of a scope, a type, a user or group identifier, and permissions in the format &quot;[scope:][type]:[id]:[permissions]&quot;. </param>
+        /// <param name="recursive"> Required. </param>
+        /// <param name="forceFlag"> Optional. Valid for &quot;SetAccessControlRecursive&quot; operation. If set to false, the operation will terminate quickly on encountering user errors (4XX). If true, the operation will ignore user errors and proceed with the operation on other sub-entities of the directory. Continuation token will only be returned when forceFlag is true in case of user errors. If not set the default value is false for this. </param>
+        /// <param name="marker"> Optional. If the number of sub nodes to be processed exceeds the limit which the server can process, a marker should be returned in the response body &lt;NextMarker&gt; field. When a marker is returned in the response, it must be specified in a subsequent invocation of the recursive operation to continue modifying acls on the path. Valid for SetAccessControl recursive apis. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public async Task<ResponseWithHeaders<PathSetPermissionHeaders>> SetPermissionAsync(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders>> SetPermissionAsync(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, bool? recursive = null, bool? forceFlag = null, string marker = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl);
+            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl, recursive, forceFlag, marker);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new PathSetPermissionHeaders(message.Response);
             switch (message.Response.Status)
             {
                 case 200:
-                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                    {
+                        AccessControlResults value = default;
+                        var document = XDocument.Load(message.Response.ContentStream, LoadOptions.PreserveWhitespace);
+                        if (document.Element("AccessControlResults") is XElement accessControlResultsElement)
+                        {
+                            value = AccessControlResults.DeserializeAccessControlResults(accessControlResultsElement);
+                        }
+                        return ResponseWithHeaders.FromValue(value, headers, message.Response);
+                    }
                 default:
                     throw await _clientDiagnostics.CreateRequestFailedExceptionAsync(message.Response).ConfigureAwait(false);
             }
@@ -1466,16 +1490,27 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="owner"> Optional. The owner of the blob or directory. </param>
         /// <param name="group"> Optional. The owning group of the blob or directory. </param>
         /// <param name="acl"> Sets POSIX access control rights on files and directories. The value is a comma-separated list of access control entries. Each access control entry (ACE) consists of a scope, a type, a user or group identifier, and permissions in the format &quot;[scope:][type]:[id]:[permissions]&quot;. </param>
+        /// <param name="recursive"> Required. </param>
+        /// <param name="forceFlag"> Optional. Valid for &quot;SetAccessControlRecursive&quot; operation. If set to false, the operation will terminate quickly on encountering user errors (4XX). If true, the operation will ignore user errors and proceed with the operation on other sub-entities of the directory. Continuation token will only be returned when forceFlag is true in case of user errors. If not set the default value is false for this. </param>
+        /// <param name="marker"> Optional. If the number of sub nodes to be processed exceeds the limit which the server can process, a marker should be returned in the response body &lt;NextMarker&gt; field. When a marker is returned in the response, it must be specified in a subsequent invocation of the recursive operation to continue modifying acls on the path. Valid for SetAccessControl recursive apis. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public ResponseWithHeaders<PathSetPermissionHeaders> SetPermission(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders> SetPermission(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, bool? recursive = null, bool? forceFlag = null, string marker = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl);
+            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl, recursive, forceFlag, marker);
             _pipeline.Send(message, cancellationToken);
             var headers = new PathSetPermissionHeaders(message.Response);
             switch (message.Response.Status)
             {
                 case 200:
-                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                    {
+                        AccessControlResults value = default;
+                        var document = XDocument.Load(message.Response.ContentStream, LoadOptions.PreserveWhitespace);
+                        if (document.Element("AccessControlResults") is XElement accessControlResultsElement)
+                        {
+                            value = AccessControlResults.DeserializeAccessControlResults(accessControlResultsElement);
+                        }
+                        return ResponseWithHeaders.FromValue(value, headers, message.Response);
+                    }
                 default:
                     throw _clientDiagnostics.CreateRequestFailedException(message.Response);
             }

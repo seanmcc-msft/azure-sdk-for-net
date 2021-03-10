@@ -561,7 +561,7 @@ namespace Azure.Storage.Files.DataLake
                 LastModified = response.Headers.LastModified.GetValueOrDefault()
             };
 
-        internal static PathInfo ToPathInfo(this ResponseWithHeaders<PathSetPermissionHeaders> response)
+        internal static PathInfo ToPathInfo(this ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders> response)
         {
             if (response == null)
             {
