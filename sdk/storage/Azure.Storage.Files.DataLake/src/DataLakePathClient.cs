@@ -1476,29 +1476,31 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathDeleteHeaders> response;
+                    ResponseWithHeaders<PathBlobDeleteHeaders> response;
 
                     if (async)
                     {
-                        response = await PathRestClient.DeleteAsync(
-                            recursive: recursive,
+                        response = await BlobPathRestClient.BlobDeleteAsync(
+                            timeout: null,
                             leaseId: conditions?.LeaseId,
                             ifMatch: conditions?.IfMatch?.ToString(),
                             ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
                             ifModifiedSince: conditions?.IfModifiedSince,
                             ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
+                            recursive: recursive,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        response = PathRestClient.Delete(
-                            recursive: recursive,
+                        response = BlobPathRestClient.BlobDelete(
+                            timeout: null,
                             leaseId: conditions?.LeaseId,
                             ifMatch: conditions?.IfMatch?.ToString(),
                             ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
                             ifModifiedSince: conditions?.IfModifiedSince,
                             ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
+                            recursive: recursive,
                             cancellationToken: cancellationToken);
                     }
 
@@ -1649,8 +1651,8 @@ namespace Azure.Storage.Files.DataLake
                 return Response.FromValue(true, response);
             }
             catch (RequestFailedException ex)
-            when (ex.ErrorCode == Constants.DataLake.PathNotFound
-                || ex.ErrorCode == Constants.DataLake.FilesystemNotFound)
+            when (ex.ErrorCode == "BlobNotFound"
+                || ex.ErrorCode == "ContainerNotFound")
             {
                 return Response.FromValue(false, default);
             }
