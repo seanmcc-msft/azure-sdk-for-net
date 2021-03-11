@@ -945,11 +945,22 @@ namespace Azure.Storage.Files.DataLake
                     scope.Start();
                     ResponseWithHeaders<PathCreateBlobHeaders> response;
 
-                    PathType? pathType = resourceType == PathResourceType.Directory ? PathType.Directory : null;
+                    PathType? pathType = null;
+                    BlobType? blobType = null;
+
+                    if (resourceType == PathResourceType.Directory)
+                    {
+                        pathType = PathType.Directory;
+                    }
+                    else
+                    {
+                        blobType = BlobType.BlockBlob;
+                    }
 
                     if (async)
                     {
                         response = await BlobPathRestClient.CreateBlobAsync(
+                            blobType: blobType,
                             timeout: null,
                             cacheControl: httpHeaders?.CacheControl,
                             contentEncoding: httpHeaders?.ContentEncoding,
@@ -971,6 +982,7 @@ namespace Azure.Storage.Files.DataLake
                     else
                     {
                         response = BlobPathRestClient.CreateBlob(
+                            blobType: blobType,
                             timeout: null,
                             cacheControl: httpHeaders?.CacheControl,
                             contentEncoding: httpHeaders?.ContentEncoding,
@@ -1201,7 +1213,7 @@ namespace Azure.Storage.Files.DataLake
                     cancellationToken).ConfigureAwait(false);
             }
             catch (RequestFailedException storageRequestFailedException)
-            when (storageRequestFailedException.ErrorCode == "PathAlreadyExists")
+            when (storageRequestFailedException.ErrorCode == "BlobAlreadyExists")
             {
                 response = default;
             }

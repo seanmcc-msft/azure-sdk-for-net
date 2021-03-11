@@ -1399,7 +1399,7 @@ namespace Azure.Storage.Files.DataLake
             }
         }
 
-        internal HttpMessage CreateCreateBlobRequest(int? timeout, string cacheControl, string contentEncoding, string contentLanguage, string contentDisposition, string contentType, IDictionary<string, string> metadata, string permissions, string umask, string leaseId, string ifMatch, string ifNoneMatch, DateTimeOffset? ifModifiedSince, DateTimeOffset? ifUnmodifiedSince, PathType? pathType)
+        internal HttpMessage CreateCreateBlobRequest(BlobType? blobType, int? timeout, string cacheControl, string contentEncoding, string contentLanguage, string contentDisposition, string contentType, IDictionary<string, string> metadata, string permissions, string umask, string leaseId, string ifMatch, string ifNoneMatch, DateTimeOffset? ifModifiedSince, DateTimeOffset? ifUnmodifiedSince, PathType? pathType)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1419,7 +1419,10 @@ namespace Azure.Storage.Files.DataLake
                 uri.AppendQuery("restype", pathType.Value.ToSerialString(), true);
             }
             request.Uri = uri;
-            request.Headers.Add("x-ms-blob-type", "BlockBlob");
+            if (blobType != null)
+            {
+                request.Headers.Add("x-ms-blob-type", blobType.Value.ToSerialString());
+            }
             request.Headers.Add("x-ms-version", version);
             if (cacheControl != null)
             {
@@ -1478,6 +1481,7 @@ namespace Azure.Storage.Files.DataLake
         }
 
         /// <summary> Creates a path with the blob endpoint. </summary>
+        /// <param name="blobType"> Specifies the type of blob to create: block blob, page blob, or append blob. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
         /// <param name="cacheControl"> Optional. Sets the blob&apos;s cache control. If specified, this property is stored with the blob and returned with a read request. </param>
         /// <param name="contentEncoding"> Optional. Sets the blob&apos;s content encoding. If specified, this property is stored with the blob and returned with a read request. </param>
@@ -1494,9 +1498,9 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="ifUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
         /// <param name="pathType"> Specifies if the created Path will be File or a Directory. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public async Task<ResponseWithHeaders<PathCreateBlobHeaders>> CreateBlobAsync(int? timeout = null, string cacheControl = null, string contentEncoding = null, string contentLanguage = null, string contentDisposition = null, string contentType = null, IDictionary<string, string> metadata = null, string permissions = null, string umask = null, string leaseId = null, string ifMatch = null, string ifNoneMatch = null, DateTimeOffset? ifModifiedSince = null, DateTimeOffset? ifUnmodifiedSince = null, PathType? pathType = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<PathCreateBlobHeaders>> CreateBlobAsync(BlobType? blobType = null, int? timeout = null, string cacheControl = null, string contentEncoding = null, string contentLanguage = null, string contentDisposition = null, string contentType = null, IDictionary<string, string> metadata = null, string permissions = null, string umask = null, string leaseId = null, string ifMatch = null, string ifNoneMatch = null, DateTimeOffset? ifModifiedSince = null, DateTimeOffset? ifUnmodifiedSince = null, PathType? pathType = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateCreateBlobRequest(timeout, cacheControl, contentEncoding, contentLanguage, contentDisposition, contentType, metadata, permissions, umask, leaseId, ifMatch, ifNoneMatch, ifModifiedSince, ifUnmodifiedSince, pathType);
+            using var message = CreateCreateBlobRequest(blobType, timeout, cacheControl, contentEncoding, contentLanguage, contentDisposition, contentType, metadata, permissions, umask, leaseId, ifMatch, ifNoneMatch, ifModifiedSince, ifUnmodifiedSince, pathType);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new PathCreateBlobHeaders(message.Response);
             switch (message.Response.Status)
@@ -1509,6 +1513,7 @@ namespace Azure.Storage.Files.DataLake
         }
 
         /// <summary> Creates a path with the blob endpoint. </summary>
+        /// <param name="blobType"> Specifies the type of blob to create: block blob, page blob, or append blob. </param>
         /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
         /// <param name="cacheControl"> Optional. Sets the blob&apos;s cache control. If specified, this property is stored with the blob and returned with a read request. </param>
         /// <param name="contentEncoding"> Optional. Sets the blob&apos;s content encoding. If specified, this property is stored with the blob and returned with a read request. </param>
@@ -1525,9 +1530,9 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="ifUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
         /// <param name="pathType"> Specifies if the created Path will be File or a Directory. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public ResponseWithHeaders<PathCreateBlobHeaders> CreateBlob(int? timeout = null, string cacheControl = null, string contentEncoding = null, string contentLanguage = null, string contentDisposition = null, string contentType = null, IDictionary<string, string> metadata = null, string permissions = null, string umask = null, string leaseId = null, string ifMatch = null, string ifNoneMatch = null, DateTimeOffset? ifModifiedSince = null, DateTimeOffset? ifUnmodifiedSince = null, PathType? pathType = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<PathCreateBlobHeaders> CreateBlob(BlobType? blobType = null, int? timeout = null, string cacheControl = null, string contentEncoding = null, string contentLanguage = null, string contentDisposition = null, string contentType = null, IDictionary<string, string> metadata = null, string permissions = null, string umask = null, string leaseId = null, string ifMatch = null, string ifNoneMatch = null, DateTimeOffset? ifModifiedSince = null, DateTimeOffset? ifUnmodifiedSince = null, PathType? pathType = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateCreateBlobRequest(timeout, cacheControl, contentEncoding, contentLanguage, contentDisposition, contentType, metadata, permissions, umask, leaseId, ifMatch, ifNoneMatch, ifModifiedSince, ifUnmodifiedSince, pathType);
+            using var message = CreateCreateBlobRequest(blobType, timeout, cacheControl, contentEncoding, contentLanguage, contentDisposition, contentType, metadata, permissions, umask, leaseId, ifMatch, ifNoneMatch, ifModifiedSince, ifUnmodifiedSince, pathType);
             _pipeline.Send(message, cancellationToken);
             var headers = new PathCreateBlobHeaders(message.Response);
             switch (message.Response.Status)

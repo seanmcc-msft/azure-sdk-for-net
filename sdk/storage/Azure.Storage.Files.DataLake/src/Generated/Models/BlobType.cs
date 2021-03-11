@@ -7,12 +7,12 @@
 
 namespace Azure.Storage.Files.DataLake.Models
 {
-    /// <summary> The PathType. </summary>
-    public enum PathType
+    /// <summary> The BlobType. </summary>
+    public enum BlobType
     {
-        /// <summary> file. </summary>
-        File,
-        /// <summary> directory. </summary>
-        Directory
+        /// <summary> None. </summary>
+        None,
+        /// <summary> BlockBlob. </summary>
+        BlockBlob
     }
 }

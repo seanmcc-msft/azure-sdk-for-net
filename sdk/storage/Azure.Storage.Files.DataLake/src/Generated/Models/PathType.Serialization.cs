@@ -13,15 +13,15 @@ namespace Azure.Storage.Files.DataLake.Models
     {
         public static string ToSerialString(this PathType value) => value switch
         {
-            PathType.File => "File",
-            PathType.Directory => "Directory",
+            PathType.File => "file",
+            PathType.Directory => "directory",
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown PathType value.")
         };
 
         public static PathType ToPathType(this string value)
         {
-            if (string.Equals(value, "File", StringComparison.InvariantCultureIgnoreCase)) return PathType.File;
-            if (string.Equals(value, "Directory", StringComparison.InvariantCultureIgnoreCase)) return PathType.Directory;
+            if (string.Equals(value, "file", StringComparison.InvariantCultureIgnoreCase)) return PathType.File;
+            if (string.Equals(value, "directory", StringComparison.InvariantCultureIgnoreCase)) return PathType.Directory;
             throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown PathType value.");
         }
     }
