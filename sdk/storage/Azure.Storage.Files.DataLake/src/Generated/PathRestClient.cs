@@ -1399,7 +1399,7 @@ namespace Azure.Storage.Files.DataLake
             }
         }
 
-        internal HttpMessage CreateSetPermissionRequest(PathSetAclMode setAclMode, int? timeout, string permissions, string owner, string group, string acl, bool? recursive, bool? forceFlag, string marker)
+        internal HttpMessage CreateSetPermissionRequest(PathSetAclMode setAclMode, int? timeout, string permissions, string owner, string group, string acl, bool? recursive, bool? forceFlag, string marker, int? maxRecords)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1426,6 +1426,10 @@ namespace Azure.Storage.Files.DataLake
             if (marker != null)
             {
                 uri.AppendQuery("marker", marker, true);
+            }
+            if (maxRecords != null)
+            {
+                uri.AppendQuery("maxRecords", maxRecords.Value, true);
             }
             request.Uri = uri;
             request.Headers.Add("x-ms-version", version);
@@ -1460,10 +1464,11 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="recursive"> Required. </param>
         /// <param name="forceFlag"> Optional. Valid for &quot;SetAccessControlRecursive&quot; operation. If set to false, the operation will terminate quickly on encountering user errors (4XX). If true, the operation will ignore user errors and proceed with the operation on other sub-entities of the directory. Continuation token will only be returned when forceFlag is true in case of user errors. If not set the default value is false for this. </param>
         /// <param name="marker"> Optional. If the number of sub nodes to be processed exceeds the limit which the server can process, a marker should be returned in the response body &lt;NextMarker&gt; field. When a marker is returned in the response, it must be specified in a subsequent invocation of the recursive operation to continue modifying acls on the path. Valid for SetAccessControl recursive apis. </param>
+        /// <param name="maxRecords"> Optional. It specifies the maximum number of files or directories on which the acl change will be applied. If omitted or greater than 2,000, the request will process up to 2,000 items. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public async Task<ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders>> SetPermissionAsync(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, bool? recursive = null, bool? forceFlag = null, string marker = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders>> SetPermissionAsync(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, bool? recursive = null, bool? forceFlag = null, string marker = null, int? maxRecords = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl, recursive, forceFlag, marker);
+            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl, recursive, forceFlag, marker, maxRecords);
             await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
             var headers = new PathSetPermissionHeaders(message.Response);
             switch (message.Response.Status)
@@ -1493,10 +1498,11 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="recursive"> Required. </param>
         /// <param name="forceFlag"> Optional. Valid for &quot;SetAccessControlRecursive&quot; operation. If set to false, the operation will terminate quickly on encountering user errors (4XX). If true, the operation will ignore user errors and proceed with the operation on other sub-entities of the directory. Continuation token will only be returned when forceFlag is true in case of user errors. If not set the default value is false for this. </param>
         /// <param name="marker"> Optional. If the number of sub nodes to be processed exceeds the limit which the server can process, a marker should be returned in the response body &lt;NextMarker&gt; field. When a marker is returned in the response, it must be specified in a subsequent invocation of the recursive operation to continue modifying acls on the path. Valid for SetAccessControl recursive apis. </param>
+        /// <param name="maxRecords"> Optional. It specifies the maximum number of files or directories on which the acl change will be applied. If omitted or greater than 2,000, the request will process up to 2,000 items. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        public ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders> SetPermission(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, bool? recursive = null, bool? forceFlag = null, string marker = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<AccessControlResults, PathSetPermissionHeaders> SetPermission(PathSetAclMode setAclMode, int? timeout = null, string permissions = null, string owner = null, string group = null, string acl = null, bool? recursive = null, bool? forceFlag = null, string marker = null, int? maxRecords = null, CancellationToken cancellationToken = default)
         {
-            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl, recursive, forceFlag, marker);
+            using var message = CreateSetPermissionRequest(setAclMode, timeout, permissions, owner, group, acl, recursive, forceFlag, marker, maxRecords);
             _pipeline.Send(message, cancellationToken);
             var headers = new PathSetPermissionHeaders(message.Response);
             switch (message.Response.Status)

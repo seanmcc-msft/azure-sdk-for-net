@@ -2794,6 +2794,7 @@ namespace Azure.Storage.Files.DataLake
                                         recursive: true,
                                         forceFlag: options?.ContinueOnFailure,
                                         marker: continuationToken,
+                                        maxRecords: options?.BatchSize,
                                         cancellationToken: cancellationToken)
                                         .ConfigureAwait(false);
                                 }
@@ -2810,6 +2811,7 @@ namespace Azure.Storage.Files.DataLake
                                         recursive: true,
                                         forceFlag: options?.ContinueOnFailure,
                                         marker: continuationToken,
+                                        maxRecords: options?.BatchSize,
                                         cancellationToken: cancellationToken);
                                 }
                             }
@@ -2848,13 +2850,13 @@ namespace Azure.Storage.Files.DataLake
                             }
                             if (options?.ProgressHandler != null)
                             {
-                                var failedEntries = response.Value.FailedEntries
+                                var failedEntries = response.Value?.FailedEntries?
                                     .Select(failedEntry => new AccessControlChangeFailure()
                                     {
                                         Name = failedEntry.Name,
                                         IsDirectory = failedEntry.Type.Equals("Directory", StringComparison.InvariantCultureIgnoreCase),
                                         ErrorMessage = failedEntry.ErrorMessage,
-                                    }).ToList();
+                                    })?.ToList();
 
                                 options.ProgressHandler.Report(
                                     Response.FromValue(
@@ -2872,7 +2874,7 @@ namespace Azure.Storage.Files.DataLake
                                                 ChangedFilesCount = filesSuccessfulCount,
                                                 FailedChangesCount = failureCount,
                                             },
-                                            BatchFailures = failedEntries.ToArray(),
+                                            BatchFailures = failedEntries?.ToArray() ?? Array.Empty<AccessControlChangeFailure>(),
                                             ContinuationToken = lastContinuationToken,
                                         },
                                         response.GetRawResponse()));

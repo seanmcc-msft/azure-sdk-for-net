@@ -36,12 +36,15 @@ namespace Azure.Storage.Files.DataLake.Models
             {
                 nextMarker = (string)nextMarkerElement;
             }
-            var array = new List<SetAclFailedEntry>();
-            foreach (var e in element.Elements("SetAclFailedEntry"))
+            if (element.Element("FailedEntries") is XElement failedEntriesElement)
             {
-                array.Add(SetAclFailedEntry.DeserializeSetAclFailedEntry(e));
+                var array = new List<SetAclFailedEntry>();
+                foreach (var e in failedEntriesElement.Elements("FailedEntry"))
+                {
+                    array.Add(SetAclFailedEntry.DeserializeSetAclFailedEntry(e));
+                }
+                failedEntries = array;
             }
-            failedEntries = array;
             return new AccessControlResults(directoriesSuccessful, filesSuccessful, failureCount, nextMarker, failedEntries);
         }
     }
