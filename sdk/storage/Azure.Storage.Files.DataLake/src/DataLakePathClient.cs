@@ -943,45 +943,49 @@ namespace Azure.Storage.Files.DataLake
                 try
                 {
                     scope.Start();
-                    ResponseWithHeaders<PathCreateHeaders> response;
+                    ResponseWithHeaders<PathCreateBlobHeaders> response;
+
+                    PathType? pathType = resourceType == PathResourceType.Directory ? PathType.Directory : null;
 
                     if (async)
                     {
-                        response = await PathRestClient.CreateAsync(
-                            resource: resourceType,
+                        response = await BlobPathRestClient.CreateBlobAsync(
+                            timeout: null,
                             cacheControl: httpHeaders?.CacheControl,
                             contentEncoding: httpHeaders?.ContentEncoding,
                             contentLanguage: httpHeaders?.ContentLanguage,
                             contentDisposition: httpHeaders?.ContentDisposition,
                             contentType: httpHeaders?.ContentType,
-                            leaseId: conditions?.LeaseId,
-                            properties: BuildMetadataString(metadata),
+                            metadata: metadata,
                             permissions: permissions,
                             umask: umask,
+                            leaseId: conditions?.LeaseId,
                             ifMatch: conditions?.IfMatch?.ToString(),
                             ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
                             ifModifiedSince: conditions?.IfModifiedSince,
                             ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
+                            pathType: pathType,
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        response = PathRestClient.Create(
-                            resource: resourceType,
+                        response = BlobPathRestClient.CreateBlob(
+                            timeout: null,
                             cacheControl: httpHeaders?.CacheControl,
                             contentEncoding: httpHeaders?.ContentEncoding,
                             contentLanguage: httpHeaders?.ContentLanguage,
                             contentDisposition: httpHeaders?.ContentDisposition,
                             contentType: httpHeaders?.ContentType,
-                            leaseId: conditions?.LeaseId,
-                            properties: BuildMetadataString(metadata),
+                            metadata: metadata,
                             permissions: permissions,
                             umask: umask,
+                            leaseId: conditions?.LeaseId,
                             ifMatch: conditions?.IfMatch?.ToString(),
                             ifNoneMatch: conditions?.IfNoneMatch?.ToString(),
                             ifModifiedSince: conditions?.IfModifiedSince,
                             ifUnmodifiedSince: conditions?.IfUnmodifiedSince,
+                            pathType: pathType,
                             cancellationToken: cancellationToken);
                     }
 

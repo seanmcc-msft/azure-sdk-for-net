@@ -560,5 +560,19 @@ namespace Azure.Storage.Files.DataLake
                 ETag = response.GetRawResponse().Headers.ETag.GetValueOrDefault(),
                 LastModified = response.Headers.LastModified.GetValueOrDefault()
             };
+
+        internal static PathInfo ToPathInfo(this ResponseWithHeaders<PathCreateBlobHeaders> response)
+        {
+            if (response == null)
+            {
+                return null;
+            }
+
+            return new PathInfo
+            {
+                ETag = response.GetRawResponse().Headers.ETag.GetValueOrDefault(),
+                LastModified = response.Headers.LastModified.GetValueOrDefault()
+            };
+        }
     }
 }

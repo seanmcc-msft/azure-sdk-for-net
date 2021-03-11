@@ -6,6 +6,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -33,7 +34,7 @@ namespace Azure.Storage.Files.DataLake
         /// <param name="path"> The file or directory path. </param>
         /// <param name="version"> Specifies the version of the operation to use for this request. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="url"/>, <paramref name="fileSystem"/>, <paramref name="path"/>, or <paramref name="version"/> is null. </exception>
-        public PathRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string path, string version = "2020-02-10")
+        public PathRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string fileSystem, string path, string version = "2020-06-12")
         {
             if (url == null)
             {
@@ -364,7 +365,7 @@ namespace Azure.Storage.Files.DataLake
             return message;
         }
 
-        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
+        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. Concurrent writes to the same file using multiple clients are not supported. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
         /// <param name="action"> The action must be &quot;append&quot; to upload data to be appended to a file, &quot;flush&quot; to flush previously uploaded data to a file, &quot;setProperties&quot; to set the properties of a file or directory, &quot;setAccessControl&quot; to set the owner, group, permissions, or access control list for a file or directory, or  &quot;setAccessControlRecursive&quot; to set the access control list for a directory recursively. Note that Hierarchical Namespace must be enabled for the account in order to use access control.  Also note that the Access Control List (ACL) includes permissions for the owner, owning group, and others, so the x-ms-permissions and x-ms-acl request headers are mutually exclusive. </param>
         /// <param name="mode"> Mode &quot;set&quot; sets POSIX access control rights on files and directories, &quot;modify&quot; modifies one or more POSIX access control rights  that pre-exist on files and directories, &quot;remove&quot; removes one or more POSIX access control rights  that were present earlier on files and directories. </param>
         /// <param name="body"> Initial data. </param>
@@ -420,7 +421,7 @@ namespace Azure.Storage.Files.DataLake
             }
         }
 
-        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
+        /// <summary> Uploads data to be appended to a file, flushes (writes) previously uploaded data to a file, sets properties for a file or directory, or sets access control for a file or directory. Data can only be appended to a file. Concurrent writes to the same file using multiple clients are not supported. This operation supports conditional HTTP requests. For more information, see [Specifying Conditional Headers for Blob Service Operations](https://docs.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations). </summary>
         /// <param name="action"> The action must be &quot;append&quot; to upload data to be appended to a file, &quot;flush&quot; to flush previously uploaded data to a file, &quot;setProperties&quot; to set the properties of a file or directory, &quot;setAccessControl&quot; to set the owner, group, permissions, or access control list for a file or directory, or  &quot;setAccessControlRecursive&quot; to set the access control list for a directory recursively. Note that Hierarchical Namespace must be enabled for the account in order to use access control.  Also note that the Access Control List (ACL) includes permissions for the owner, owning group, and others, so the x-ms-permissions and x-ms-acl request headers are mutually exclusive. </param>
         /// <param name="mode"> Mode &quot;set&quot; sets POSIX access control rights on files and directories, &quot;modify&quot; modifies one or more POSIX access control rights  that pre-exist on files and directories, &quot;remove&quot; removes one or more POSIX access control rights  that were present earlier on files and directories. </param>
         /// <param name="body"> Initial data. </param>
@@ -1392,6 +1393,146 @@ namespace Azure.Storage.Files.DataLake
             switch (message.Response.Status)
             {
                 case 200:
+                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                default:
+                    throw _clientDiagnostics.CreateRequestFailedException(message.Response);
+            }
+        }
+
+        internal HttpMessage CreateCreateBlobRequest(int? timeout, string cacheControl, string contentEncoding, string contentLanguage, string contentDisposition, string contentType, IDictionary<string, string> metadata, string permissions, string umask, string leaseId, string ifMatch, string ifNoneMatch, DateTimeOffset? ifModifiedSince, DateTimeOffset? ifUnmodifiedSince, PathType? pathType)
+        {
+            var message = _pipeline.CreateMessage();
+            var request = message.Request;
+            request.Method = RequestMethod.Put;
+            var uri = new RawRequestUriBuilder();
+            uri.AppendRaw(url, false);
+            uri.AppendPath("/", false);
+            uri.AppendPath(fileSystem, true);
+            uri.AppendPath("/", false);
+            uri.AppendPath(path, false);
+            if (timeout != null)
+            {
+                uri.AppendQuery("timeout", timeout.Value, true);
+            }
+            if (pathType != null)
+            {
+                uri.AppendQuery("restype", pathType.Value.ToSerialString(), true);
+            }
+            request.Uri = uri;
+            request.Headers.Add("x-ms-blob-type", "BlockBlob");
+            request.Headers.Add("x-ms-version", version);
+            if (cacheControl != null)
+            {
+                request.Headers.Add("x-ms-cache-control", cacheControl);
+            }
+            if (contentEncoding != null)
+            {
+                request.Headers.Add("x-ms-content-encoding", contentEncoding);
+            }
+            if (contentLanguage != null)
+            {
+                request.Headers.Add("x-ms-content-language", contentLanguage);
+            }
+            if (contentDisposition != null)
+            {
+                request.Headers.Add("x-ms-content-disposition", contentDisposition);
+            }
+            if (contentType != null)
+            {
+                request.Headers.Add("x-ms-content-type", contentType);
+            }
+            if (metadata != null)
+            {
+                request.Headers.Add("x-ms-meta-", metadata);
+            }
+            if (permissions != null)
+            {
+                request.Headers.Add("x-ms-permissions", permissions);
+            }
+            if (umask != null)
+            {
+                request.Headers.Add("x-ms-umask", umask);
+            }
+            if (leaseId != null)
+            {
+                request.Headers.Add("x-ms-lease-id", leaseId);
+            }
+            if (ifMatch != null)
+            {
+                request.Headers.Add("If-Match", ifMatch);
+            }
+            if (ifNoneMatch != null)
+            {
+                request.Headers.Add("If-None-Match", ifNoneMatch);
+            }
+            if (ifModifiedSince != null)
+            {
+                request.Headers.Add("If-Modified-Since", ifModifiedSince.Value, "R");
+            }
+            if (ifUnmodifiedSince != null)
+            {
+                request.Headers.Add("If-Unmodified-Since", ifUnmodifiedSince.Value, "R");
+            }
+            request.Headers.Add("Accept", "application/json");
+            return message;
+        }
+
+        /// <summary> Creates a path with the blob endpoint. </summary>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="cacheControl"> Optional. Sets the blob&apos;s cache control. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="contentEncoding"> Optional. Sets the blob&apos;s content encoding. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="contentLanguage"> Optional. Set the blob&apos;s content language. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="contentDisposition"> Optional. Sets the blob&apos;s Content-Disposition header. </param>
+        /// <param name="contentType"> Optional. Sets the blob&apos;s content type. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="metadata"> Optional. Specifies a user-defined name-value pair associated with the blob. If no name-value pairs are specified, the operation will copy the metadata from the source blob or file to the destination blob. If one or more name-value pairs are specified, the destination blob is created with the specified metadata, and metadata is not copied from the source blob or file. Note that beginning with version 2009-09-19, metadata names must adhere to the naming rules for C# identifiers. See Naming and Referencing Containers, Blobs, and Metadata for more information. </param>
+        /// <param name="permissions"> Optional and only valid if Hierarchical Namespace is enabled for the account. Sets POSIX access permissions for the file owner, the file owning group, and others. Each class may be granted read, write, or execute permission.  The sticky bit is also supported.  Both symbolic (rwxrw-rw-) and 4-digit octal notation (e.g. 0766) are supported. </param>
+        /// <param name="umask"> Optional and only valid if Hierarchical Namespace is enabled for the account. When creating a file or directory and the parent folder does not have a default ACL, the umask restricts the permissions of the file or directory to be created.  The resulting permission is given by p bitwise and not u, where p is the permission and u is the umask.  For example, if p is 0777 and u is 0057, then the resulting permission is 0720.  The default permission is 0777 for a directory and 0666 for a file.  The default umask is 0027.  The umask must be specified in 4-digit octal notation (e.g. 0766). </param>
+        /// <param name="leaseId"> If specified, the operation only succeeds if the resource&apos;s lease is active and matches this ID. </param>
+        /// <param name="ifMatch"> Specify an ETag value to operate only on blobs with a matching value. </param>
+        /// <param name="ifNoneMatch"> Specify an ETag value to operate only on blobs without a matching value. </param>
+        /// <param name="ifModifiedSince"> Specify this header value to operate only on a blob if it has been modified since the specified date/time. </param>
+        /// <param name="ifUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
+        /// <param name="pathType"> Specifies if the created Path will be File or a Directory. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        public async Task<ResponseWithHeaders<PathCreateBlobHeaders>> CreateBlobAsync(int? timeout = null, string cacheControl = null, string contentEncoding = null, string contentLanguage = null, string contentDisposition = null, string contentType = null, IDictionary<string, string> metadata = null, string permissions = null, string umask = null, string leaseId = null, string ifMatch = null, string ifNoneMatch = null, DateTimeOffset? ifModifiedSince = null, DateTimeOffset? ifUnmodifiedSince = null, PathType? pathType = null, CancellationToken cancellationToken = default)
+        {
+            using var message = CreateCreateBlobRequest(timeout, cacheControl, contentEncoding, contentLanguage, contentDisposition, contentType, metadata, permissions, umask, leaseId, ifMatch, ifNoneMatch, ifModifiedSince, ifUnmodifiedSince, pathType);
+            await _pipeline.SendAsync(message, cancellationToken).ConfigureAwait(false);
+            var headers = new PathCreateBlobHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 201:
+                    return ResponseWithHeaders.FromValue(headers, message.Response);
+                default:
+                    throw await _clientDiagnostics.CreateRequestFailedExceptionAsync(message.Response).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary> Creates a path with the blob endpoint. </summary>
+        /// <param name="timeout"> The timeout parameter is expressed in seconds. For more information, see &lt;a href=&quot;https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations&quot;&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;. </param>
+        /// <param name="cacheControl"> Optional. Sets the blob&apos;s cache control. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="contentEncoding"> Optional. Sets the blob&apos;s content encoding. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="contentLanguage"> Optional. Set the blob&apos;s content language. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="contentDisposition"> Optional. Sets the blob&apos;s Content-Disposition header. </param>
+        /// <param name="contentType"> Optional. Sets the blob&apos;s content type. If specified, this property is stored with the blob and returned with a read request. </param>
+        /// <param name="metadata"> Optional. Specifies a user-defined name-value pair associated with the blob. If no name-value pairs are specified, the operation will copy the metadata from the source blob or file to the destination blob. If one or more name-value pairs are specified, the destination blob is created with the specified metadata, and metadata is not copied from the source blob or file. Note that beginning with version 2009-09-19, metadata names must adhere to the naming rules for C# identifiers. See Naming and Referencing Containers, Blobs, and Metadata for more information. </param>
+        /// <param name="permissions"> Optional and only valid if Hierarchical Namespace is enabled for the account. Sets POSIX access permissions for the file owner, the file owning group, and others. Each class may be granted read, write, or execute permission.  The sticky bit is also supported.  Both symbolic (rwxrw-rw-) and 4-digit octal notation (e.g. 0766) are supported. </param>
+        /// <param name="umask"> Optional and only valid if Hierarchical Namespace is enabled for the account. When creating a file or directory and the parent folder does not have a default ACL, the umask restricts the permissions of the file or directory to be created.  The resulting permission is given by p bitwise and not u, where p is the permission and u is the umask.  For example, if p is 0777 and u is 0057, then the resulting permission is 0720.  The default permission is 0777 for a directory and 0666 for a file.  The default umask is 0027.  The umask must be specified in 4-digit octal notation (e.g. 0766). </param>
+        /// <param name="leaseId"> If specified, the operation only succeeds if the resource&apos;s lease is active and matches this ID. </param>
+        /// <param name="ifMatch"> Specify an ETag value to operate only on blobs with a matching value. </param>
+        /// <param name="ifNoneMatch"> Specify an ETag value to operate only on blobs without a matching value. </param>
+        /// <param name="ifModifiedSince"> Specify this header value to operate only on a blob if it has been modified since the specified date/time. </param>
+        /// <param name="ifUnmodifiedSince"> Specify this header value to operate only on a blob if it has not been modified since the specified date/time. </param>
+        /// <param name="pathType"> Specifies if the created Path will be File or a Directory. </param>
+        /// <param name="cancellationToken"> The cancellation token to use. </param>
+        public ResponseWithHeaders<PathCreateBlobHeaders> CreateBlob(int? timeout = null, string cacheControl = null, string contentEncoding = null, string contentLanguage = null, string contentDisposition = null, string contentType = null, IDictionary<string, string> metadata = null, string permissions = null, string umask = null, string leaseId = null, string ifMatch = null, string ifNoneMatch = null, DateTimeOffset? ifModifiedSince = null, DateTimeOffset? ifUnmodifiedSince = null, PathType? pathType = null, CancellationToken cancellationToken = default)
+        {
+            using var message = CreateCreateBlobRequest(timeout, cacheControl, contentEncoding, contentLanguage, contentDisposition, contentType, metadata, permissions, umask, leaseId, ifMatch, ifNoneMatch, ifModifiedSince, ifUnmodifiedSince, pathType);
+            _pipeline.Send(message, cancellationToken);
+            var headers = new PathCreateBlobHeaders(message.Response);
+            switch (message.Response.Status)
+            {
+                case 201:
                     return ResponseWithHeaders.FromValue(headers, message.Response);
                 default:
                     throw _clientDiagnostics.CreateRequestFailedException(message.Response);
